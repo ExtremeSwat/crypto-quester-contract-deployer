@@ -1,0 +1,437 @@
+{
+    "contractName": "CryptoQuest",
+    "abi": [
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "previousOwner",
+                    "type": "address"
+                },
+                {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "newOwner",
+                    "type": "address"
+                }
+            ],
+            "name": "OwnershipTransferred",
+            "type": "event"
+        },
+        {
+            "stateMutability": "payable",
+            "type": "fallback"
+        },
+        {
+            "inputs": [],
+            "name": "checkIfChallengeHasBeenComplete",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "createNewChallenge",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "createUser",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "string",
+                    "name": "statement",
+                    "type": "string"
+                }
+            ],
+            "name": "deployTables",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "owner",
+            "outputs": [
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "renounceOwnership",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address payable",
+                    "name": "toAddress",
+                    "type": "address"
+                }
+            ],
+            "name": "sendFunds",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "newOwner",
+                    "type": "address"
+                }
+            ],
+            "name": "transferOwnership",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "stateMutability": "payable",
+            "type": "receive"
+        }
+    ],
+    "metadata": "{\"compiler\":{\"version\":\"0.8.17+commit.8df45f5f\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"stateMutability\":\"payable\",\"type\":\"fallback\"},{\"inputs\":[],\"name\":\"checkIfChallengeHasBeenComplete\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"createNewChallenge\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"createUser\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"statement\",\"type\":\"string\"}],\"name\":\"deployTables\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"renounceOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address payable\",\"name\":\"toAddress\",\"type\":\"address\"}],\"name\":\"sendFunds\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"stateMutability\":\"payable\",\"type\":\"receive\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{\"owner()\":{\"details\":\"Returns the address of the current owner.\"},\"renounceOwnership()\":{\"details\":\"Leaves the contract without owner. It will not be possible to call `onlyOwner` functions anymore. Can only be called by the current owner. NOTE: Renouncing ownership will leave the contract without an owner, thereby removing any functionality that is only available to the owner.\"},\"transferOwnership(address)\":{\"details\":\"Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner.\"}},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"d:/Work/Projects/CryptoQuester/crypto-quester-contract-deployer/contracts/CryptoQuest.sol\":\"CryptoQuest\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"d:/Work/Projects/CryptoQuester/crypto-quester-contract-deployer/contracts/CryptoQuest.sol\":{\"keccak256\":\"0x37d960af64886d6af5ebf28ea3dd62f84eb2738bf06d8b558573e2dae787117a\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://6013dd6e2055b3b41b5c795d5d2c0694305367e9036b2de940d8c153b932f06f\",\"dweb:/ipfs/QmTGAqMyneAh5q9Y3c3fUis8sguKy7gtQfMZDG73pN2NVx\"]},\"d:/Work/Projects/CryptoQuester/crypto-quester-contract-deployer/contracts/CryptoQuestDeployer.sol\":{\"keccak256\":\"0x3929534da0766c6033d8024a412068bb6c069a28c2acec6828b860ee293e0edf\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://061b5d3192c4e73ea48215bcc91d3b2c9b5663cfa1741374e37b6c3b3f17aa91\",\"dweb:/ipfs/QmRBkY89L1ntebYM2f3rvxcvH1D4s7wgRCgNuSMD2j1mSC\"]},\"d:/Work/Projects/CryptoQuester/crypto-quester-contract-deployer/node_modules/@openzeppelin/contracts/access/Ownable.sol\":{\"keccak256\":\"0xa94b34880e3c1b0b931662cb1c09e5dfa6662f31cba80e07c5ee71cd135c9673\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://40fb1b5102468f783961d0af743f91b9980cf66b50d1d12009f6bb1869cea4d2\",\"dweb:/ipfs/QmYqEbJML4jB1GHbzD4cUZDtJg5wVwNm3vDJq1GbyDus8y\"]},\"d:/Work/Projects/CryptoQuester/crypto-quester-contract-deployer/node_modules/@openzeppelin/contracts/utils/Context.sol\":{\"keccak256\":\"0xe2e337e6dde9ef6b680e07338c493ebea1b5fd09b43424112868e9cc1706bca7\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://6df0ddf21ce9f58271bdfaa85cde98b200ef242a05a3f85c2bc10a8294800a92\",\"dweb:/ipfs/QmRK2Y5Yc6BK7tGKkgsgn3aJEQGi5aakeSPZvS65PV8Xp3\"]},\"d:/Work/Projects/CryptoQuester/crypto-quester-contract-deployer/node_modules/@tableland/evm/contracts/ITablelandController.sol\":{\"keccak256\":\"0xda5f7e8144be7322e66e0f6652e040d2e8409345843d225efdd11adf05cddf1d\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://575855cf857ee601043a74a35ca5f0bd971c4d275b9de883189f8391d23ac1b5\",\"dweb:/ipfs/QmadkwWXiQTicYnYsCPyW5fY2gGjCDbc9NVn4iWMEcoKZr\"]},\"d:/Work/Projects/CryptoQuester/crypto-quester-contract-deployer/node_modules/@tableland/evm/contracts/ITablelandTables.sol\":{\"keccak256\":\"0x597bb13cc0f1990cee44a423601b16a383fd9a405874eed18f7d5045a9cffa2f\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://cecc2dcb63fc9dcad948c250aa0f1ff382d8babf70279c2739fa482cdc51277c\",\"dweb:/ipfs/QmUPyE38WVavmYManV18RbEWhNZbWqv6843pANdhtX5ZQn\"]}},\"version\":1}",
+    "bytecode": "",
+    "deployedBytecode": "",
+    "sourceMap": "",
+    "deployedSourceMap": "",
+    "sourcePath": "d:/Work/Projects/CryptoQuester/crypto-quester-contract-deployer/contracts/CryptoQuest.sol",
+    "compiler": {
+        "name": "solc",
+        "version": "0.8.17+commit.8df45f5f"
+    },
+    "ast": {
+        "absolutePath": "d:/Work/Projects/CryptoQuester/crypto-quester-contract-deployer/contracts/CryptoQuest.sol",
+        "exportedSymbols": {
+            "Context": [
+                225
+            ],
+            "CryptoQuest": [
+                24
+            ],
+            "CryptoQuestDeployer": [
+                90
+            ],
+            "ITablelandController": [
+                252
+            ],
+            "ITablelandTables": [
+                366
+            ],
+            "Ownable": [
+                203
+            ]
+        },
+        "id": 25,
+        "license": "MIT",
+        "nodeType": "SourceUnit",
+        "nodes": [
+            {
+                "id": 1,
+                "literals": [
+                    "solidity",
+                    "^",
+                    "0.8",
+                    ".17"
+                ],
+                "nodeType": "PragmaDirective",
+                "src": "33:24:0"
+            },
+            {
+                "absolutePath": "d:/Work/Projects/CryptoQuester/crypto-quester-contract-deployer/contracts/CryptoQuestDeployer.sol",
+                "file": "./CryptoQuestDeployer.sol",
+                "id": 2,
+                "nameLocation": "-1:-1:-1",
+                "nodeType": "ImportDirective",
+                "scope": 25,
+                "sourceUnit": 91,
+                "src": "61:35:0",
+                "symbolAliases": [],
+                "unitAlias": ""
+            },
+            {
+                "absolutePath": "d:/Work/Projects/CryptoQuester/crypto-quester-contract-deployer/node_modules/@tableland/evm/contracts/ITablelandTables.sol",
+                "file": "d:/Work/Projects/CryptoQuester/crypto-quester-contract-deployer/node_modules/@tableland/evm/contracts/ITablelandTables.sol",
+                "id": 3,
+                "nameLocation": "-1:-1:-1",
+                "nodeType": "ImportDirective",
+                "scope": 25,
+                "sourceUnit": 367,
+                "src": "98:132:0",
+                "symbolAliases": [],
+                "unitAlias": ""
+            },
+            {
+                "abstract": true,
+                "baseContracts": [
+                    {
+                        "baseName": {
+                            "id": 4,
+                            "name": "CryptoQuestDeployer",
+                            "nameLocations": [
+                                "267:19:0"
+                            ],
+                            "nodeType": "IdentifierPath",
+                            "referencedDeclaration": 90,
+                            "src": "267:19:0"
+                        },
+                        "id": 5,
+                        "nodeType": "InheritanceSpecifier",
+                        "src": "267:19:0"
+                    }
+                ],
+                "canonicalName": "CryptoQuest",
+                "contractDependencies": [],
+                "contractKind": "contract",
+                "fullyImplemented": false,
+                "id": 24,
+                "linearizedBaseContracts": [
+                    24,
+                    90,
+                    203,
+                    225
+                ],
+                "name": "CryptoQuest",
+                "nameLocation": "252:11:0",
+                "nodeType": "ContractDefinition",
+                "nodes": [
+                    {
+                        "body": {
+                            "id": 10,
+                            "nodeType": "Block",
+                            "src": "341:10:0",
+                            "statements": []
+                        },
+                        "functionSelector": "25ad91ce",
+                        "id": 11,
+                        "implemented": true,
+                        "kind": "function",
+                        "modifiers": [],
+                        "name": "createUser",
+                        "nameLocation": "303:10:0",
+                        "nodeType": "FunctionDefinition",
+                        "parameters": {
+                            "id": 6,
+                            "nodeType": "ParameterList",
+                            "parameters": [],
+                            "src": "313:2:0"
+                        },
+                        "returnParameters": {
+                            "id": 9,
+                            "nodeType": "ParameterList",
+                            "parameters": [
+                                {
+                                    "constant": false,
+                                    "id": 8,
+                                    "mutability": "mutable",
+                                    "name": "",
+                                    "nameLocation": "-1:-1:-1",
+                                    "nodeType": "VariableDeclaration",
+                                    "scope": 11,
+                                    "src": "332:7:0",
+                                    "stateVariable": false,
+                                    "storageLocation": "default",
+                                    "typeDescriptions": {
+                                        "typeIdentifier": "t_uint256",
+                                        "typeString": "uint256"
+                                    },
+                                    "typeName": {
+                                        "id": 7,
+                                        "name": "uint256",
+                                        "nodeType": "ElementaryTypeName",
+                                        "src": "332:7:0",
+                                        "typeDescriptions": {
+                                            "typeIdentifier": "t_uint256",
+                                            "typeString": "uint256"
+                                        }
+                                    },
+                                    "visibility": "internal"
+                                }
+                            ],
+                            "src": "331:9:0"
+                        },
+                        "scope": 24,
+                        "src": "294:57:0",
+                        "stateMutability": "nonpayable",
+                        "virtual": false,
+                        "visibility": "public"
+                    },
+                    {
+                        "body": {
+                            "id": 16,
+                            "nodeType": "Block",
+                            "src": "414:10:0",
+                            "statements": []
+                        },
+                        "functionSelector": "c89af7a2",
+                        "id": 17,
+                        "implemented": true,
+                        "kind": "function",
+                        "modifiers": [],
+                        "name": "createNewChallenge",
+                        "nameLocation": "368:18:0",
+                        "nodeType": "FunctionDefinition",
+                        "parameters": {
+                            "id": 12,
+                            "nodeType": "ParameterList",
+                            "parameters": [],
+                            "src": "386:2:0"
+                        },
+                        "returnParameters": {
+                            "id": 15,
+                            "nodeType": "ParameterList",
+                            "parameters": [
+                                {
+                                    "constant": false,
+                                    "id": 14,
+                                    "mutability": "mutable",
+                                    "name": "",
+                                    "nameLocation": "-1:-1:-1",
+                                    "nodeType": "VariableDeclaration",
+                                    "scope": 17,
+                                    "src": "405:7:0",
+                                    "stateVariable": false,
+                                    "storageLocation": "default",
+                                    "typeDescriptions": {
+                                        "typeIdentifier": "t_uint256",
+                                        "typeString": "uint256"
+                                    },
+                                    "typeName": {
+                                        "id": 13,
+                                        "name": "uint256",
+                                        "nodeType": "ElementaryTypeName",
+                                        "src": "405:7:0",
+                                        "typeDescriptions": {
+                                            "typeIdentifier": "t_uint256",
+                                            "typeString": "uint256"
+                                        }
+                                    },
+                                    "visibility": "internal"
+                                }
+                            ],
+                            "src": "404:9:0"
+                        },
+                        "scope": 24,
+                        "src": "359:65:0",
+                        "stateMutability": "nonpayable",
+                        "virtual": false,
+                        "visibility": "public"
+                    },
+                    {
+                        "body": {
+                            "id": 22,
+                            "nodeType": "Block",
+                            "src": "500:18:0",
+                            "statements": []
+                        },
+                        "functionSelector": "4fb66655",
+                        "id": 23,
+                        "implemented": true,
+                        "kind": "function",
+                        "modifiers": [],
+                        "name": "checkIfChallengeHasBeenComplete",
+                        "nameLocation": "441:31:0",
+                        "nodeType": "FunctionDefinition",
+                        "parameters": {
+                            "id": 18,
+                            "nodeType": "ParameterList",
+                            "parameters": [],
+                            "src": "472:2:0"
+                        },
+                        "returnParameters": {
+                            "id": 21,
+                            "nodeType": "ParameterList",
+                            "parameters": [
+                                {
+                                    "constant": false,
+                                    "id": 20,
+                                    "mutability": "mutable",
+                                    "name": "",
+                                    "nameLocation": "-1:-1:-1",
+                                    "nodeType": "VariableDeclaration",
+                                    "scope": 23,
+                                    "src": "491:7:0",
+                                    "stateVariable": false,
+                                    "storageLocation": "default",
+                                    "typeDescriptions": {
+                                        "typeIdentifier": "t_uint256",
+                                        "typeString": "uint256"
+                                    },
+                                    "typeName": {
+                                        "id": 19,
+                                        "name": "uint256",
+                                        "nodeType": "ElementaryTypeName",
+                                        "src": "491:7:0",
+                                        "typeDescriptions": {
+                                            "typeIdentifier": "t_uint256",
+                                            "typeString": "uint256"
+                                        }
+                                    },
+                                    "visibility": "internal"
+                                }
+                            ],
+                            "src": "490:9:0"
+                        },
+                        "scope": 24,
+                        "src": "432:86:0",
+                        "stateMutability": "nonpayable",
+                        "virtual": false,
+                        "visibility": "public"
+                    }
+                ],
+                "scope": 25,
+                "src": "234:287:0",
+                "usedErrors": []
+            }
+        ],
+        "src": "33:490:0"
+    },
+    "functionHashes": {
+        "checkIfChallengeHasBeenComplete()": "4fb66655",
+        "createNewChallenge()": "c89af7a2",
+        "createUser()": "25ad91ce",
+        "deployTables(string)": "a3a91f24",
+        "owner()": "8da5cb5b",
+        "renounceOwnership()": "715018a6",
+        "sendFunds(address)": "cfe52bdd",
+        "transferOwnership(address)": "f2fde38b"
+    },
+    "gasEstimates": null
+}
