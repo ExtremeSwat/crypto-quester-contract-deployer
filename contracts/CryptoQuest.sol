@@ -7,7 +7,9 @@ abstract contract CryptoQuest is CryptoQuestDeployer {
     //Events
     event ChallengeCreated(address indexed _challengeOwner, string skinName);
 
-    function createNewChallenge() public returns (uint256) {}
+    function createNewChallenge() public returns (uint256) {
+        
+    }
 
     function addNewSkin(string memory skinName, string memory ipfsHash) public payable
     {

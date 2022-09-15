@@ -49,7 +49,7 @@ contract CryptoQuestDeployer is Ownable, ERC721Holder {
             address(this),
             SQLHelpers.toCreateFromSchema(
                 challengesPrefix,
-                "(id integer primary key NOT NULL,title text not null unique,description text not null,fromTimestamp integer not null,toTimestamp integer not null,triggerTimestamp integer,owner text not null,creationTimestamp integer not null,mapSkinId integer)"
+                "(id integer primary key NOT NULL,title text not null unique,description text not null,fromTimestamp integer not null,toTimestamp integer not null,triggerTimestamp integer,owner text not null,creationTimestamp integer not null,mapSkinId integer, unique(title))"
             )
         );
 
