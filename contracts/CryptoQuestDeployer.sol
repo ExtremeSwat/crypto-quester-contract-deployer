@@ -23,37 +23,71 @@ contract CryptoQuestDeployer is Ownable, ERC721Holder {
 
     constructor(address registry) payable {
         _tableland = ITablelandTables(registry);
+
+        initializeBaseTables();
     }
 
     function initializeBaseTables() public payable onlyOwner {
-        mapSkinsTableName = SQLHelpers.toCreateFromSchema(
+        mapSkinsTableName = SQLHelpers.toNameFromId(
             "mapSkins",
-            "(id integer primary key not null, skinName text not null, ipfsHash text not null)"
+            _tableland.createTable(
+                address(this),
+                SQLHelpers.toCreateFromSchema(
+                    "mapSkins",
+                    "(id integer primary key not null, skinName text not null, ipfsHash text not null)"
+                )
+            )
         );
-        challengesTableName = SQLHelpers.toCreateFromSchema(
+
+        challengesTableName = SQLHelpers.toNameFromId(
             "challenges",
-            "(id integer primary key not null, skinName text not null, ipfsHash text not null)"
+            _tableland.createTable(
+                address(this),
+                SQLHelpers.toCreateFromSchema(
+                    "challenges",
+                    "(id integer primary key NOT NULL,title text not null unique,description text not null,fromTimestamp integer not null,toTimestamp integer not null,triggerTimestamp integer,owner text not null,creationTimestamp integer not null,mapSkinId integer)"
+                )
+            )
         );
-        challengeLocationsTableName = SQLHelpers.toCreateFromSchema(
+
+        challengeLocationsTableName = SQLHelpers.toNameFromId(
             "challenge_locations",
-            "(id integer primary key not null, skinName text not null, ipfsHash text not null)"
+            _tableland.createTable(
+                address(this),
+                SQLHelpers.toCreateFromSchema(
+                    "challenge_locations",
+                    "(id integer not null primary key,hint TEXT,latitude real not null,longitude real not null,creationTimestamp integer not null,challengeId integer not null)"
+                )
+            )
         );
-        participantsTableName = SQLHelpers.toCreateFromSchema(
+
+        participantsTableName = SQLHelpers.toNameFromId(
             "participants",
-            "(id integer primary key not null, skinName text not null, ipfsHash text not null)"
+            _tableland.createTable(
+                address(this),
+                SQLHelpers.toCreateFromSchema(
+                    "participants",
+                    "(id integer primary key not null, participant_address text not null, join_timestamp integer not null, challengeId integer not null, unique(participant_address, challengeId)"
+                )
+            )
         );
-        participantProgressTableName = SQLHelpers.toCreateFromSchema(
+
+        participantProgressTableName = SQLHelpers.toNameFromId(
             "participant_progress",
-            "(id integer primary key not null, skinName text not null, ipfsHash text not null)"
+            _tableland.createTable(
+                address(this),
+                SQLHelpers.toCreateFromSchema(
+                    "participant_progress",
+                    "(id integer primary key not null, challenge_participant_id integer not null, challenge_location_id integer not null, challenge_visit_timestamp integer not null)"
+                )
+            )
         );
     }
 
-    function create(string memory prefix, string memory createStatement)
-        public
-        payable
-        onlyOwner
-        returns (string memory)
-    {
+    function createCustomTable(
+        string memory prefix,
+        string memory createStatement
+    ) public payable onlyOwner returns (string memory) {
         uint256 tableId = _tableland.createTable(
             address(this),
             string.concat(
