@@ -9,7 +9,7 @@ import "./SQLHelpers.sol";
 
 contract CryptoQuestDeployer is Ownable, ERC721Holder {
     // base tables
-    string mapSkinsTablePrefix = "mapSkins";
+    string mapSkinsPrefix = "mapSkins";
     uint256 mapSkinsTableId;
 
     string challengesPrefix = "challenges";
@@ -40,7 +40,7 @@ contract CryptoQuestDeployer is Ownable, ERC721Holder {
         mapSkinsTableId = _tableland.createTable(
             address(this),
             SQLHelpers.toCreateFromSchema(
-                mapSkinsTablePrefix,
+                mapSkinsPrefix,
                 "(id integer primary key not null, skinName text not null, ipfsHash text not null, unique(ipfsHash), unique(skinName))"
             )
         );
