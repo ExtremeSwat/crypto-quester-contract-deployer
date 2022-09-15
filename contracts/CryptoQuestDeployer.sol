@@ -34,7 +34,7 @@ contract CryptoQuestDeployer is Ownable, ERC721Holder {
                 address(this),
                 SQLHelpers.toCreateFromSchema(
                     "mapSkins",
-                    "(id integer primary key not null, skinName text not null, ipfsHash text not null)"
+                    "(id integer primary key not null, skinName text not null, ipfsHash text not null, unique(ipfsHash), unique(skinName))"
                 )
             )
         );
