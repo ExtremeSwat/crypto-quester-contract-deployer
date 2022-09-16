@@ -10,23 +10,33 @@ abstract contract CryptoQuest is CryptoQuestDeployer {
     event ChallengeCreated(address indexed _challengeOwner, string title);
     event ParticipantJoined(address indexed _participant, uint256 challengeId);
     event ParticipantLeft(address indexed _participant, uint256 challengeId);
+    event ChallengeLocationCreated(
+        address indexed _participant,
+        uint256 challengeId,
+        string latitude, 
+        string longitude
+    );
 
-    function leaveChallenge(uint256 challengeId)
-        public
-        payable
-        validChallengeId(challengeId)
-    {
-        // this query isn't proofed with errors that will signal the abuser to screw off, it will run without doing any
-        // crap on the DB
-
-        string memory deleteFilter = string.concat(
-            "participant_address='", Strings.toHexString(uint256(uint160(msg.sender)), 20), "'",
-            "and challengeId=", Strings.toString(challengeId)
+    function addChallengeLocation(
+        string memory hint,
+        string memory latitude,
+        string memory longitude,
+        uint256 challengeId
+    ) public payable validChallengeId(challengeId) {
+        string memory name = SQLHelpers.toNameFromId(
+            challengeLocationsPrefix,
+            challengeLocationsId
         );
-        string memory deleteStatement = SQLHelpers.toDelete(participantsPrefix, participantsTableId, deleteFilter);
 
-         _tableland.runSQL(address(this), participantsTableId, deleteStatement);
-        emit ParticipantLeft(msg.sender, challengeId);
+        string memory insertStatement = string.concat(
+            "insert into ", name,
+            " (hint,latitude,longitude,creationTimestamp,challengeId)",
+            " select v.column1, v.column2, v.column3, v.column4, c.id from (values('", hint, "',", latitude, ", ", longitude, ", ", Strings.toString(block.timestamp), ",", Strings.toString(challengeId), " )) v",
+            " left join challenges c on c.id = v.column5 and c.owner='", Strings.toHexString(uint256(uint160(msg.sender)), 20), "'"
+        );
+
+        _tableland.runSQL(address(this), challengeLocationsId, insertStatement);
+        emit ChallengeLocationCreated(msg.sender, challengeId, latitude, longitude);
     }
 
     function participateInChallenge(uint256 challengeId)
@@ -104,6 +114,31 @@ abstract contract CryptoQuest is CryptoQuestDeployer {
         _tableland.runSQL(address(this), challengesTableId, insertStatement);
 
         emit ChallengeCreated(msg.sender, title);
+    }
+
+    function leaveChallenge(uint256 challengeId)
+        public
+        payable
+        validChallengeId(challengeId)
+    {
+        // this query isn't proofed with errors that will signal the abuser to screw off, it will run without doing any
+        // crap on the DB
+
+        string memory deleteFilter = string.concat(
+            "participant_address='",
+            Strings.toHexString(uint256(uint160(msg.sender)), 20),
+            "'",
+            "and challengeId=",
+            Strings.toString(challengeId)
+        );
+        string memory deleteStatement = SQLHelpers.toDelete(
+            participantsPrefix,
+            participantsTableId,
+            deleteFilter
+        );
+
+        _tableland.runSQL(address(this), participantsTableId, deleteStatement);
+        emit ParticipantLeft(msg.sender, challengeId);
     }
 
     function addNewSkin(string memory skinName, string memory ipfsHash)
