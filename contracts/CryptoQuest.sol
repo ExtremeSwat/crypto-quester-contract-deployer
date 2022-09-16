@@ -4,12 +4,14 @@ pragma solidity ^0.8.17;
 import "./CryptoQuestDeployer.sol";
 
 // todo: re-entrancy attack prevention
+// toDo: stop spamming STrings.bs this will cause extra gas units, just extract them to the upper lines of the function into memory vars, cheaper and cleanier
 
 abstract contract CryptoQuest is CryptoQuestDeployer {
     // Events
     event ChallengeCreated(address indexed _challengeOwner, string title);
     event ParticipantJoined(address indexed _participant, uint256 challengeId);
-    event ParticipantLeft(address indexed _participant, uint256 challengeId);
+    event ChallengeTriggered();
+
     event ChallengeLocationCreated(
         address indexed owner,
         uint256 challengeId,
@@ -22,13 +24,55 @@ abstract contract CryptoQuest is CryptoQuestDeployer {
         uint256 removedChallengeLocationId
     );
 
+    event ParticipantLeft(address indexed _participant, uint256 challengeId);
     event ChallengeLocationRemoved(address indexed _participant);
 
-    function removeChallengeLocation(uint256 challengeId, uint256 challengeLocationId)
+    function triggerChallengeStart(uint256 challengeId)
         public
         payable
         validChallengeId(challengeId)
     {
+        string memory currentTimestamp = Strings.toString(block.timestamp);
+
+        string memory participantsTableName = SQLHelpers.toNameFromId(
+            participantsPrefix,
+            participantsTableId
+        );
+
+        string memory updateStatement = SQLHelpers.toUpdate(
+            challengesPrefix,
+            challengesTableId,
+            string.concat(
+                "triggerTimestamp= ",
+                Strings.toString(block.timestamp)
+            ),
+            string.concat(
+                "id=",
+                Strings.toString(challengeId),
+                // only the owner can do it
+                " and owner=",
+                Strings.toHexString(uint256(uint160(msg.sender)), 20),
+                // cannot alter an already started challenge
+                " and triggerTimestamp is null",
+                // cannot be out of bounds
+                " and fromTimestamp <=",
+                currentTimestamp,
+                " and toTimestamp >= ",
+                currentTimestamp,
+                // at least one challenger has to participate
+                " and exists (select 'ex' from ",
+                participantsTableName,
+                " where challengeId = ",
+                Strings.toString(challengeId),
+                ")"
+            )
+        );
+    }
+
+    function removeChallengeLocation(
+        uint256 challengeId,
+        uint256 challengeLocationId
+    ) public payable validChallengeId(challengeId) {
         string memory name = SQLHelpers.toNameFromId(
             challengeLocationsPrefix,
             challengeLocationsId
@@ -36,15 +80,30 @@ abstract contract CryptoQuest is CryptoQuestDeployer {
 
         // removing only if challenge hasn't been started yet and only by it's owner
         string memory removeStatement = string.concat(
-            "delete from ", name,
-            " where challengeId = ", Strings.toString(challengeId),
-            " and id = ", Strings.toString(challengeLocationId),
-            " and id in (select id from ", name , " where id = ", Strings.toString(challengeLocationId), "and (triggerTimestamp >= ",  Strings.toString(block.timestamp) ," or triggerTimestamp is null)",
-            " and owner = '", Strings.toHexString(uint256(uint160(msg.sender)), 20), "')"
+            "delete from ",
+            name,
+            " where challengeId = ",
+            Strings.toString(challengeId),
+            " and id = ",
+            Strings.toString(challengeLocationId),
+            " and id in (select id from ",
+            name,
+            " where id = ",
+            Strings.toString(challengeLocationId),
+            "and (triggerTimestamp >= ",
+            Strings.toString(block.timestamp),
+            " or triggerTimestamp is null)",
+            " and owner = '",
+            Strings.toHexString(uint256(uint160(msg.sender)), 20),
+            "')"
         );
 
         _tableland.runSQL(address(this), challengeLocationsId, removeStatement);
-        emit ChallengeLocationRemoved(msg.sender, challengeId, challengeLocationId);
+        emit ChallengeLocationRemoved(
+            msg.sender,
+            challengeId,
+            challengeLocationId
+        );
     }
 
     function addChallengeLocation(
