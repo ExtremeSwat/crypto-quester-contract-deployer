@@ -8,6 +8,37 @@ abstract contract CryptoQuest is CryptoQuestDeployer {
 
     // Events
     event ChallengeCreated(address indexed _challengeOwner, string title);
+    event ParticipantJoined(address indexed _participant, uint256 challengeId);
+
+    function participateInChallenge(uint256 challengeId) public payable {
+        require(challengeId < 0 || challengeId == 0, "invalid challenge id");
+
+        string memory name = SQLHelpers.toNameFromId(
+            participantsPrefix,
+            participantsTableId
+        );
+
+        string memory insertStatement = string.concat(
+            "insert into ",
+            name,
+            " (participant_address, join_timestamp, challengeId)",
+            " select case when c.owner == '",
+            Strings.toHexString(uint256(uint160(msg.sender)), 20),
+            "' or pa.id is not null then null else column1 end, column2, column3",
+            " from ( values ( '",
+            Strings.toHexString(uint256(uint160(msg.sender)), 20),
+            "',",
+            Strings.toString(block.timestamp),
+            ", ",
+            Strings.toString(challengeId),
+            ") ) v",
+            " join challenges c on v.column3 = c.id",
+            " left join Participants pa on column1 = pa.participant_address"
+        );
+
+        _tableland.runSQL(address(this), challengesTableId, insertStatement);
+        emit ParticipantJoined(msg.sender, challengeId);
+    }
 
     function createNewChallenge(
         string memory title,
@@ -97,9 +128,9 @@ abstract contract CryptoQuest is CryptoQuestDeployer {
             Strings.toString(fromTimestamp),
             ",",
             Strings.toString(toTimestamp),
-            ",",
+            ",'",
             Strings.toHexString(uint256(uint160(msg.sender)), 20),
-            ",",
+            "',",
             Strings.toString(block.timestamp)
         );
 
