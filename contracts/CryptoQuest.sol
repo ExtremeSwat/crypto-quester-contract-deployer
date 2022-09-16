@@ -11,11 +11,41 @@ abstract contract CryptoQuest is CryptoQuestDeployer {
     event ParticipantJoined(address indexed _participant, uint256 challengeId);
     event ParticipantLeft(address indexed _participant, uint256 challengeId);
     event ChallengeLocationCreated(
-        address indexed _participant,
+        address indexed owner,
         uint256 challengeId,
-        string latitude, 
+        string latitude,
         string longitude
     );
+    event ChallengeLocationRemoved(
+        address indexed owner,
+        uint256 challengeId,
+        uint256 removedChallengeLocationId
+    );
+
+    event ChallengeLocationRemoved(address indexed _participant);
+
+    function removeChallengeLocation(uint256 challengeId, uint256 challengeLocationId)
+        public
+        payable
+        validChallengeId(challengeId)
+    {
+        string memory name = SQLHelpers.toNameFromId(
+            challengeLocationsPrefix,
+            challengeLocationsId
+        );
+
+        // removing only if challenge hasn't been started yet and only by it's owner
+        string memory removeStatement = string.concat(
+            "delete from ", name,
+            " where challengeId = ", Strings.toString(challengeId),
+            " and id = ", Strings.toString(challengeLocationId),
+            " and id in (select id from ", name , " where id = ", Strings.toString(challengeLocationId), "and (triggerTimestamp >= ",  Strings.toString(block.timestamp) ," or triggerTimestamp is null)",
+            " and owner = '", Strings.toHexString(uint256(uint160(msg.sender)), 20), "')"
+        );
+
+        _tableland.runSQL(address(this), challengeLocationsId, removeStatement);
+        emit ChallengeLocationRemoved(msg.sender, challengeId, challengeLocationId);
+    }
 
     function addChallengeLocation(
         string memory hint,
@@ -29,14 +59,32 @@ abstract contract CryptoQuest is CryptoQuestDeployer {
         );
 
         string memory insertStatement = string.concat(
-            "insert into ", name,
+            "insert into ",
+            name,
             " (hint,latitude,longitude,creationTimestamp,challengeId)",
-            " select v.column1, v.column2, v.column3, v.column4, c.id from (values('", hint, "',", latitude, ", ", longitude, ", ", Strings.toString(block.timestamp), ",", Strings.toString(challengeId), " )) v",
-            " left join challenges c on c.id = v.column5 and c.owner='", Strings.toHexString(uint256(uint160(msg.sender)), 20), "'"
+            " select v.column1, v.column2, v.column3, v.column4, c.id from (values('",
+            hint,
+            "',",
+            latitude,
+            ", ",
+            longitude,
+            ", ",
+            Strings.toString(block.timestamp),
+            ",",
+            Strings.toString(challengeId),
+            " )) v",
+            " left join challenges c on c.id = v.column5 and c.owner='",
+            Strings.toHexString(uint256(uint160(msg.sender)), 20),
+            "'"
         );
 
         _tableland.runSQL(address(this), challengeLocationsId, insertStatement);
-        emit ChallengeLocationCreated(msg.sender, challengeId, latitude, longitude);
+        emit ChallengeLocationCreated(
+            msg.sender,
+            challengeId,
+            latitude,
+            longitude
+        );
     }
 
     function participateInChallenge(uint256 challengeId)
@@ -64,7 +112,9 @@ abstract contract CryptoQuest is CryptoQuestDeployer {
             Strings.toString(challengeId),
             ") ) v",
             // we must ensure ppl don't join while thing's started lmao
-            " left join challenges c on v.column3 = c.id and (c.triggerTimestamp > ", Strings.toHexString(uint256(uint160(msg.sender)), 20), ' or c.triggerTimestamp is null)'
+            " left join challenges c on v.column3 = c.id and (c.triggerTimestamp > ",
+            Strings.toString(block.timestamp),
+            " or c.triggerTimestamp is null)"
             " left join Participants pa on column1 = pa.participant_address"
         );
 
