@@ -63,7 +63,8 @@ abstract contract CryptoQuest is CryptoQuestDeployer {
             ", ",
             Strings.toString(challengeId),
             ") ) v",
-            " join challenges c on v.column3 = c.id",
+            // we must ensure ppl don't join while thing's started lmao
+            " left join challenges c on v.column3 = c.id and (c.triggerTimestamp > ", Strings.toHexString(uint256(uint160(msg.sender)), 20), ' or c.triggerTimestamp is null)'
             " left join Participants pa on column1 = pa.participant_address"
         );
 
