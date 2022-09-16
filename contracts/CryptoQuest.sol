@@ -26,7 +26,7 @@ abstract contract CryptoQuest is CryptoQuestDeployer {
         string memory deleteStatement = SQLHelpers.toDelete(participantsPrefix, participantsTableId, deleteFilter);
 
          _tableland.runSQL(address(this), participantsTableId, deleteStatement);
-        emit ParticipantJoined(msg.sender, challengeId);
+        emit ParticipantLeft(msg.sender, challengeId);
     }
 
     function participateInChallenge(uint256 challengeId)
