@@ -3,16 +3,37 @@ pragma solidity ^0.8.17;
 
 import "./CryptoQuestDeployer.sol";
 
-abstract contract CryptoQuest is CryptoQuestDeployer {
-    //maybe add structs
+// todo: re-entrancy attack prevention
 
+abstract contract CryptoQuest is CryptoQuestDeployer {
     // Events
     event ChallengeCreated(address indexed _challengeOwner, string title);
     event ParticipantJoined(address indexed _participant, uint256 challengeId);
+    event ParticipantLeft(address indexed _participant, uint256 challengeId);
 
-    function participateInChallenge(uint256 challengeId) public payable {
-        require(challengeId < 0 || challengeId == 0, "invalid challenge id");
+    function leaveChallenge(uint256 challengeId)
+        public
+        payable
+        validChallengeId(challengeId)
+    {
+        // this query isn't proofed with errors that will signal the abuser to screw off, it will run without doing any
+        // crap on the DB
 
+        string memory deleteFilter = string.concat(
+            "participant_address='", Strings.toHexString(uint256(uint160(msg.sender)), 20), "'",
+            "and challengeId=", Strings.toString(challengeId)
+        );
+        string memory deleteStatement = SQLHelpers.toDelete(participantsPrefix, participantsTableId, deleteFilter);
+
+         _tableland.runSQL(address(this), participantsTableId, deleteStatement);
+        emit ParticipantJoined(msg.sender, challengeId);
+    }
+
+    function participateInChallenge(uint256 challengeId)
+        public
+        payable
+        validChallengeId(challengeId)
+    {
         string memory name = SQLHelpers.toNameFromId(
             participantsPrefix,
             participantsTableId
@@ -140,5 +161,10 @@ abstract contract CryptoQuest is CryptoQuestDeployer {
         }
 
         return (columns, values);
+    }
+
+    modifier validChallengeId(uint256 _challengeId) {
+        require(_challengeId > 0, "invalid challenge id");
+        _;
     }
 }
