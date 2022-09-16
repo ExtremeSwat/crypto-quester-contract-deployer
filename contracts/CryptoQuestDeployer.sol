@@ -49,7 +49,7 @@ contract CryptoQuestDeployer is Ownable, ERC721Holder {
             address(this),
             SQLHelpers.toCreateFromSchema(
                 challengesPrefix,
-                "(id integer primary key NOT NULL,title text not null unique,description text not null,fromTimestamp integer not null,toTimestamp integer not null,triggerTimestamp integer,owner text not null,creationTimestamp integer not null,mapSkinId integer, unique(title))"
+                "(id integer primary key NOT NULL,title text not null unique,description text not null,fromTimestamp integer not null,toTimestamp integer not null,triggerTimestamp integer,ownerAddress text not null,creationTimestamp integer not null,mapSkinId integer, unique(title))"
             )
         );
 
@@ -65,7 +65,7 @@ contract CryptoQuestDeployer is Ownable, ERC721Holder {
             address(this),
             SQLHelpers.toCreateFromSchema(
                 participantsPrefix,
-                "(id integer primary key not null, participant_address text not null, join_timestamp integer not null, challengeId integer not null, unique(participant_address, challengeId)"
+                "(id integer primary key not null, participantAddress text not null, join_timestamp integer not null, challengeId integer not null, unique(participantAddress, challengeId)"
             )
         );
 
@@ -73,7 +73,7 @@ contract CryptoQuestDeployer is Ownable, ERC721Holder {
             address(this),
             SQLHelpers.toCreateFromSchema(
                 "participant_progress",
-                "(id integer primary key not null, challenge_participant_id integer not null, challenge_location_id integer not null, challenge_visit_timestamp integer not null, unique(challenge_participant_id, challenge_location_id))"
+                "(id integer primary key not null, participantst_id integer not null, challenge_location_id integer not null, visit_timestamp integer not null, unique(challenge_participant_id, challenge_location_id))"
             )
         );
     }
