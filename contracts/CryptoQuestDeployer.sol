@@ -15,8 +15,11 @@ contract CryptoQuestDeployer is Ownable, ERC721Holder {
     string challengesPrefix = "challenges";
     uint256 challengesTableId;
 
-    string challengeLocationsPrefix = "challenge_locations";
-    uint256 challengeLocationsId;
+    string checkpointsPrefix = "checkpoints";
+    uint256 checkpointsTableId;
+
+    string checkpointTriggerPrefix = "checkpointTriggers"
+    uint256 checkpointTriggersTableId;
 
     string participantsPrefix = "participants";
     uint256 participantsTableId;
@@ -57,11 +60,19 @@ contract CryptoQuestDeployer is Ownable, ERC721Holder {
             )
         );
 
-        challengeLocationsId = _tableland.createTable(
+        checkpointsTableId = _tableland.createTable(
             address(this),
             SQLHelpers.toCreateFromSchema(
-                challengeLocationsPrefix,
-                "(id integer not null primary key,hint TEXT,latitude real not null,longitude real not null,creationTimestamp integer not null,challengeId integer not null)"
+                checkpointsPrefix,
+                "(id integer primary key not null, title text not null, iconUrl text not null, unique(title), lat real not null, lng real not null)  unique(iconUrl))"
+            );
+        );
+
+        checkpointTriggersTableId = _tableland.createTable(
+            address(this),
+            SQLHelpers.toCreateFromSchema(
+                checkpointTriggerPrefix,
+                "(id integer primary key not null, title text not null, imageUrl text not null, isPhotoRequired integer null, photoDescription text null, isUserInputRequired integer not null, userInputDescription text null, userInputAnwer text null)"
             )
         );
 
