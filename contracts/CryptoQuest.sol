@@ -178,14 +178,18 @@ abstract contract CryptoQuest is CryptoQuestDeployer {
             usersTableId
         );
 
+        string memory challengesTableName = SQLHelpers.toNameFromId(
+            challengesPrefix,
+            challengesTableId
+        );
+
         string memory userAddress = Strings.toHexString(uint256(uint160(msg.sender)), 20);
 
         string memory insertStatement = string.concat(
             "insert into ",
             participants,
             " (participant_address, joinTimestamp, challengeId)",
-            " select case when c.userAddress == '",userAddress,
-            "' or pa.id is not null or usr is null then null else column1 end, column2, c.id",
+            " select case when c.userAddress == v.column1 or pa.id is not null or usr is null then null else column1 end, column2, c.id",
             " from ( values ( '", userAddress,
             "',",
             Strings.toString(block.timestamp),
@@ -193,9 +197,8 @@ abstract contract CryptoQuest is CryptoQuestDeployer {
             Strings.toString(challengeId),
             ") ) v",
             // we must ensure ppl don't join while thing's started lmao
-            " left join challenges c on v.column3 = c.id and (c.triggerTimestamp > ",
-            Strings.toString(block.timestamp),
-            " or c.triggerTimestamp is null)"
+            " left join ", challengesTableName ," c on v.column3 = c.id and ",
+            "(c.triggerTimestamp > v.column2 or c.triggerTimestamp is null)",
             " left join ", participants, " pa on column1 = pa.participant_address",
             " left join ", users ," usr on usr.userAddress = pa.participant_address"
         );
@@ -258,6 +261,43 @@ abstract contract CryptoQuest is CryptoQuestDeployer {
         );
 
         _tableland.runSQL(address(this), challengesTableId,  updateStatement);
+    }
+
+    function participantProgressCheckIn(uint256 challengeCheckpointId) public payable  {
+        string memory participantsTableName = SQLHelpers.toNameFromId(
+            participantsPrefix,
+            participantsTableId
+        );
+
+        string memory challengeCheckpointsTableName = SQLHelpers.toNameFromId(
+            challengeCheckpointsPrefix,
+            challengeCheckpointsTableId
+        );
+
+        string memory participantProgressTableName = SQLHelpers.toNameFromId(
+            participantProgressPrefix,
+            participantsProgressTableId
+        );
+
+        string memory challengesTableName = SQLHelpers.toNameFromId(
+            challengesPrefix,
+            challengesTableId
+        );
+
+        string memory userAddress = Strings.toHexString(uint256(uint160(msg.sender)), 20);
+        string memory currentTimestamp = Strings.toString(block.timestamp);
+
+        string memory insertStatement = string.concat(
+            "insert into", participantProgressTableName,
+            " (participantId, challengeCheckpointId, visitTimestamp)",
+            " select c.userAddress, cc.id, column3",
+            " from ( values ( '", userAddress, "',", Strings.toString(challengeCheckpointId), ", ", currentTimestamp,") ) v",
+            " left join ", challengeCheckpointsTableName, " cc on cc.id=v.column2",
+            " left join ", challengesTableName, " c on c.id = cc.challengeId",
+            " left join ", participantsTableName, "p on p.challengeId = c.challengeId and p.userAddress = v.column1"
+        );
+
+        _tableland.runSQL(address(this), participantsProgressTableId, insertStatement);
     }
 
     // ------------------------------------------ PRIVATE METHODS ------------------------------------------------

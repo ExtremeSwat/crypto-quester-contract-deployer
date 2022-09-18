@@ -27,7 +27,7 @@ contract CryptoQuestDeployer is Ownable, ERC721Holder {
     string participantsPrefix = "participants";
     uint256 participantsTableId;
 
-    string participantProgressPrefix = "participant_progress";
+    string participantProgressPrefix = "participantProgress";
     uint256 participantsProgressTableId;
 
     // additional tables
