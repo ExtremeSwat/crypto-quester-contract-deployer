@@ -12,6 +12,9 @@ contract CryptoQuestDeployer is Ownable, ERC721Holder {
     string mapSkinsPrefix = "mapSkins";
     uint256 mapSkinsTableId;
 
+    string usersPrefix = "users";
+    int256 usersTableId;
+
     string challengesPrefix = "challenges";
     uint256 challengesTableId;
 
@@ -52,11 +55,19 @@ contract CryptoQuestDeployer is Ownable, ERC721Holder {
             )
         );
 
+        usersTableId = _tableland.createTable(
+            address(this),
+            SQLHelpers.toCreateFromSchema(
+                usersPrefix,
+                "(userAddress text not null primary key, nickName text not null, registeredDate integer not null)"
+            )
+        );
+
         challengesTableId = _tableland.createTable(
             address(this),
             SQLHelpers.toCreateFromSchema(
                 challengesPrefix,
-                "(id integer primary key NOT NULL,title text not null unique,description text not null,fromTimestamp integer not null,toTimestamp integer not null,triggerTimestamp integer,ownerAddress text not null,creationTimestamp integer not null,mapSkinId integer, challengeStatus integer not null, unique(title))"
+                "(id integer primary key NOT NULL,title text not null unique,description text not null,fromTimestamp integer not null,toTimestamp integer not null,triggerTimestamp integer,userAddress text not null,creationTimestamp integer not null,mapSkinId integer, challengeStatus integer not null, unique(title))"
             )
         );
 
@@ -80,7 +91,7 @@ contract CryptoQuestDeployer is Ownable, ERC721Holder {
             address(this),
             SQLHelpers.toCreateFromSchema(
                 participantsPrefix,
-                "(id integer primary key not null, participantAddress text not null, join_timestamp integer not null, challengeId integer not null, unique(participantAddress, challengeId)"
+                "(id integer primary key not null, userAddress text not null, join_timestamp integer not null, challengeId integer not null, unique(userAddress, challengeId)"
             )
         );
 
