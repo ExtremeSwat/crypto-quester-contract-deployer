@@ -7,181 +7,113 @@ import "./CryptoQuestDeployer.sol";
 // toDo: stop spamming STrings.bs this will cause extra gas units, just extract them to the upper lines of the function into memory vars, cheaper and cleanier
 
 abstract contract CryptoQuest is CryptoQuestDeployer {
-    // Events
-    event ChallengeCreated(address indexed _challengeOwner, string title);
-    event ParticipantJoined(address indexed _participant, uint256 challengeId);
-    event ChallengeTriggered();
+    // Creation Events
+    event ChallengeCreated(address indexed _userAddress, string title);
+    event ParticipantJoined(address indexed _userAddress, uint256 challengeId);
+    event CheckpointCreated(address indexed _userAddress, string title);
 
-    event ChallengeLocationCreated(
-        address indexed owner,
+    /**
+     * @dev Generates a checkpoint for a given challengeId
+     *
+     */
+    function createCheckpoint(
         uint256 challengeId,
-        string latitude,
-        string longitude
-    );
-    event ChallengeLocationRemoved(
-        address indexed owner,
-        uint256 challengeId,
-        uint256 removedChallengeLocationId
-    );
-
-    event ParticipantLeft(address indexed _participant, uint256 challengeId);
-    event ChallengeLocationRemoved(address indexed _participant);
-
-    function triggerChallengeStart(uint256 challengeId)
-        public
-        payable
-        validChallengeId(challengeId)
-    {
+        uint256 ordering,
+        string memory title,
+        string memory iconUrl,
+        string memory lat,
+        string memory lng
+    ) public payable validChallengeId(challengeId) {
         string memory currentTimestamp = Strings.toString(block.timestamp);
-
-        string memory participantsTableName = SQLHelpers.toNameFromId(
-            participantsPrefix,
-            participantsTableId
+        string memory userAddress = Strings.toHexString(
+            uint256(uint160(msg.sender)),
+            20
         );
 
-        string memory updateStatement = SQLHelpers.toUpdate(
+        string memory checkPointTableName = SQLHelpers.toNameFromId(
+            challengeCheckpointsPrefix,
+            challengeCheckpointsTableId
+        );
+
+        string memory challengesTableName = SQLHelpers.toNameFromId(
             challengesPrefix,
-            challengesTableId,
-            string.concat(
-                "triggerTimestamp= ",
-                Strings.toString(block.timestamp)
-            ),
-            string.concat(
-                "id=",
-                Strings.toString(challengeId),
-                // only the owner can do it
-                " and owner=",
-                Strings.toHexString(uint256(uint160(msg.sender)), 20),
-                // cannot alter an already started challenge
-                " and triggerTimestamp is null",
-                // cannot be out of bounds
-                " and fromTimestamp <=",
-                currentTimestamp,
-                " and toTimestamp >= ",
-                currentTimestamp,
-                // at least one challenger has to participate
-                " and exists (select 'ex' from ",
-                participantsTableName,
-                " where challengeId = ",
-                Strings.toString(challengeId),
-                ")"
-            )
-        );
-    }
-
-    function removeChallengeLocation(
-        uint256 challengeId,
-        uint256 challengeLocationId
-    ) public payable validChallengeId(challengeId) {
-        string memory name = SQLHelpers.toNameFromId(
-            challengeLocationsPrefix,
-            challengeLocationsId
+            challengesTableId
         );
 
-        // removing only if challenge hasn't been started yet and only by it's owner
-        string memory removeStatement = string.concat(
-            "delete from ",
-            name,
-            " where challengeId = ",
-            Strings.toString(challengeId),
-            " and id = ",
-            Strings.toString(challengeLocationId),
-            " and id in (select id from ",
-            name,
-            " where id = ",
-            Strings.toString(challengeLocationId),
-            "and (triggerTimestamp >= ",
-            Strings.toString(block.timestamp),
-            " or triggerTimestamp is null)",
-            " and owner = '",
-            Strings.toHexString(uint256(uint160(msg.sender)), 20),
-            "')"
-        );
+        string memory challengeIdStr = Strings.toString(challengeId);
 
-        _tableland.runSQL(address(this), challengeLocationsId, removeStatement);
-        emit ChallengeLocationRemoved(
-            msg.sender,
-            challengeId,
-            challengeLocationId
-        );
-    }
-
-    function addChallengeLocation(
-        string memory hint,
-        string memory latitude,
-        string memory longitude,
-        uint256 challengeId
-    ) public payable validChallengeId(challengeId) {
-        string memory name = SQLHelpers.toNameFromId(
-            challengeLocationsPrefix,
-            challengeLocationsId
-        );
-
-        string memory insertStatement = string.concat(
+        string memory checkpointInsertStatement = string.concat(
             "insert into ",
-            name,
-            " (hint,latitude,longitude,creationTimestamp,challengeId)",
-            " select v.column1, v.column2, v.column3, v.column4, c.id from (values('",
-            hint,
-            "',",
-            latitude,
-            ", ",
-            longitude,
-            ", ",
-            Strings.toString(block.timestamp),
-            ",",
-            Strings.toString(challengeId),
-            " )) v",
-            " left join challenges c on c.id = v.column5 and c.owner='",
-            Strings.toHexString(uint256(uint160(msg.sender)), 20),
-            "'"
+            checkPointTableName,
+            " (challengeId, ordering, title, iconUrl, lat, lng, creationTimestamp)",
+            " select cll.id, case when c.ordering is null then column1 else null) as ordering, column2, column3, column4, column5, ", currentTimestamp,",",
+            " from (values(", Strings.toString(ordering), 
+            ",'", title, "','", iconUrl,"',", lat,",", lng,
+            ")) v",
+            " left join ", challengesTableName ," cll on cll.id = ", challengeIdStr, " and cll.userAddress = '", userAddress, "'" ,
+            " left join ", checkPointTableName, "c on c.ordering != ", Strings.toString(ordering), " and c.challengeId = ", challengeIdStr
         );
 
-        _tableland.runSQL(address(this), challengeLocationsId, insertStatement);
-        emit ChallengeLocationCreated(
-            msg.sender,
-            challengeId,
-            latitude,
-            longitude
+        _tableland.runSQL(
+            address(this),
+            challengeCheckpointsTableId,
+            checkpointInsertStatement
         );
     }
 
-    function participateInChallenge(uint256 challengeId)
-        public
-        payable
-        validChallengeId(challengeId)
-    {
-        string memory name = SQLHelpers.toNameFromId(
-            participantsPrefix,
-            participantsTableId
+    /**
+     * @dev Removes a checkpoint
+     * limits --> will not be able to throw errors since I can't make SQLite crash w/ an error :/ on deletes
+     * will need to dig deeper once MVP is done
+     * title - checkpointId
+     *
+     */
+    function removeCheckpoint(uint256 checkpointId) public payable {
+        string memory checkPointTableName = SQLHelpers.toNameFromId(
+            challengeCheckpointsPrefix,
+            challengeCheckpointsTableId
         );
 
-        string memory insertStatement = string.concat(
-            "insert into ",
-            name,
-            " (participant_address, join_timestamp, challengeId)",
-            " select case when c.owner == '",
-            Strings.toHexString(uint256(uint160(msg.sender)), 20),
-            "' or pa.id is not null then null else column1 end, column2, column3",
-            " from ( values ( '",
-            Strings.toHexString(uint256(uint160(msg.sender)), 20),
-            "',",
-            Strings.toString(block.timestamp),
-            ", ",
-            Strings.toString(challengeId),
-            ") ) v",
-            // we must ensure ppl don't join while thing's started lmao
-            " left join challenges c on v.column3 = c.id and (c.triggerTimestamp > ",
-            Strings.toString(block.timestamp),
-            " or c.triggerTimestamp is null)"
-            " left join Participants pa on column1 = pa.participant_address"
+        string memory checkpointTriggersTableName = SQLHelpers.toNameFromId(
+            challengeCheckpointTriggerPrefix,
+            challengeCheckpointTriggersTableId
         );
 
-        _tableland.runSQL(address(this), challengesTableId, insertStatement);
-        emit ParticipantJoined(msg.sender, challengeId);
+        string memory challengesTableName = SQLHelpers.toNameFromId(
+            challengesPrefix,
+            challengesTableId
+        );
+
+        string memory userAddress = Strings.toHexString(
+            uint256(uint160(msg.sender)),
+            20
+        );
+
+        string memory checkpointIdStr = Strings.toString(checkpointId);
+
+        string memory deleteCheckpointStatement = string.concat(
+            "delete from ", checkPointTableName,
+            " where id =", checkpointIdStr,
+            " and checkpointId = ", checkpointIdStr,
+            " and challengeId in (select id from ", challengesTableName, " where userAddress='", userAddress ,")",
+            " and id not in (select id from ", checkpointTriggersTableName, ", where checkpointId = ", checkpointIdStr, ")"
+        );
+
+        _tableland.runSQL(address(this), challengeCheckpointsTableId, deleteCheckpointStatement);
     }
 
-    function createNewChallenge(
+    /**
+     * @dev Generates a challenge
+     *
+     * title - Title of the challenge. [mandatory]
+     * description - Description of the challenge. [mandatory]
+     * fromTimestamp - unix epoch which indicates the start of the challenge. [mandatory]
+     * toTimestamp - unix epoch which indicates when the challenge will end. [mandatory]
+     * mapSkinId - skinId from skins table [mandatory]
+     *
+     */
+
+    function createChallenge(
         string memory title,
         string memory description,
         uint256 fromTimestamp,
@@ -222,48 +154,113 @@ abstract contract CryptoQuest is CryptoQuestDeployer {
         );
 
         _tableland.runSQL(address(this), challengesTableId, insertStatement);
-
         emit ChallengeCreated(msg.sender, title);
     }
 
-    function leaveChallenge(uint256 challengeId)
+    /**
+     * @dev Allows a user to participate in a challenge
+     *
+     * challengeId - id of the challenge [mandatory]
+    */
+
+    function participateInChallenge(uint256 challengeId)
         public
         payable
         validChallengeId(challengeId)
     {
-        // this query isn't proofed with errors that will signal the abuser to screw off, it will run without doing any
-        // crap on the DB
-
-        string memory deleteFilter = string.concat(
-            "participant_address='",
-            Strings.toHexString(uint256(uint160(msg.sender)), 20),
-            "'",
-            "and challengeId=",
-            Strings.toString(challengeId)
-        );
-        string memory deleteStatement = SQLHelpers.toDelete(
+        string memory participants = SQLHelpers.toNameFromId(
             participantsPrefix,
-            participantsTableId,
-            deleteFilter
+            participantsTableId
         );
 
-        _tableland.runSQL(address(this), participantsTableId, deleteStatement);
-        emit ParticipantLeft(msg.sender, challengeId);
+        string memory users = SQLHelpers.toNameFromId(
+            usersPrefix,
+            usersTableId
+        );
+
+        string memory userAddress = Strings.toHexString(uint256(uint160(msg.sender)), 20);
+
+        string memory insertStatement = string.concat(
+            "insert into ",
+            participants,
+            " (participant_address, joinTimestamp, challengeId)",
+            " select case when c.userAddress == '",userAddress,
+            "' or pa.id is not null or usr is null then null else column1 end, column2, c.id",
+            " from ( values ( '", userAddress,
+            "',",
+            Strings.toString(block.timestamp),
+            ", ",
+            Strings.toString(challengeId),
+            ") ) v",
+            // we must ensure ppl don't join while thing's started lmao
+            " left join challenges c on v.column3 = c.id and (c.triggerTimestamp > ",
+            Strings.toString(block.timestamp),
+            " or c.triggerTimestamp is null)"
+            " left join ", participants, " pa on column1 = pa.participant_address",
+            " left join ", users ," usr on usr.userAddress = pa.participant_address"
+        );
+
+        _tableland.runSQL(address(this), challengesTableId, insertStatement);
+        emit ParticipantJoined(msg.sender, challengeId);
     }
 
-    function addNewSkin(string memory skinName, string memory ipfsHash)
+    /**
+     * @dev Allows an owner to start his own challenge
+     *
+     * challengeId - id of the challenge [mandatory]
+    */
+     function triggerChallengeStart(uint256 challengeId)
         public
         payable
+        validChallengeId(challengeId)
     {
-        string memory insertStatement = SQLHelpers.toInsert(
-            mapSkinsPrefix,
-            mapSkinsTableId,
-            string.concat("skinName,", "ipfsHash"),
-            string.concat("'", skinName, "',", "'", ipfsHash, "'")
+        string memory currentTimestamp = Strings.toString(block.timestamp);
+
+        string memory participantsTableName = SQLHelpers.toNameFromId(
+            participantsPrefix,
+            participantsTableId
         );
 
-        _tableland.runSQL(address(this), mapSkinsTableId, insertStatement);
+         string memory challengeCheckpointsTableName = SQLHelpers.toNameFromId(
+            challengeCheckpointsPrefix,
+            challengeCheckpointsTableId
+        );
+
+        string memory updateStatement = SQLHelpers.toUpdate(
+            challengesPrefix,
+            challengesTableId,
+            string.concat(
+                "triggerTimestamp= ",
+                Strings.toString(block.timestamp)
+            ),
+            string.concat(
+                "id=",
+                Strings.toString(challengeId),
+                // only the owner can do it
+                " and userAddress=",
+                Strings.toHexString(uint256(uint160(msg.sender)), 20),
+                // cannot alter an already started challenge
+                " and triggerTimestamp is null",
+                // cannot be out of bounds
+                " and fromTimestamp <=",
+                currentTimestamp,
+                " and toTimestamp >= ",
+                currentTimestamp,
+                // at least one POI challenge exists
+                " and exists (select 'ex' from ", challengeCheckpointsTableName, ", where challengeId = ", Strings.toString(challengeId), ")"
+                // at least one challenger has to participate
+                " and exists (select 'ex' from ",
+                participantsTableName,
+                " where challengeId = ",
+                Strings.toString(challengeId),
+                ")"
+            )
+        );
+
+        _tableland.runSQL(address(this), challengesTableId,  updateStatement);
     }
+
+    // ------------------------------------------ PRIVATE METHODS ------------------------------------------------
 
     /*
         Generates values for insert
@@ -280,8 +277,10 @@ abstract contract CryptoQuest is CryptoQuestDeployer {
             "description,",
             "fromTimestamp,",
             "toTimestamp,",
-            "owner,",
-            "creationTimestamp"
+            "userAddress,",
+            "creationTimestamp,",
+            "mapSkinId,",
+            "challengeStatus"
         );
 
         string memory values = string.concat(
@@ -308,8 +307,14 @@ abstract contract CryptoQuest is CryptoQuestDeployer {
         return (columns, values);
     }
 
+    // ------------------------------------------ PRIVATE METHODS ------------------------------------------------
+
+    // ------------------------------------------ Modifiers ------------------------------------------------
+
     modifier validChallengeId(uint256 _challengeId) {
         require(_challengeId > 0, "invalid challenge id");
         _;
     }
+
+    // ------------------------------------------ Modifiers ------------------------------------------------
 }
