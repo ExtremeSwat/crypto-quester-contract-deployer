@@ -97,6 +97,39 @@ library SQLHelpers {
             );
     }
 
+        /**
+     * @dev Generates an INSERT statement based on table prefix, tableId, columns, and values.
+     *
+     * prefix - the user generated table prefix as a string.
+     * tableId - the Tableland generated tableId as a uint256.
+     * columns - a string encoded ordered list of columns that will be updated. Example: "name, age".
+     * values - a string encoded ordered list of list of values that will be inserted wrapped in parentheses. Example: "'jerry', 24". Values order must match column order.
+     *
+     * Requirements:
+     *
+     * - block.chainid must refer to a supported chain.
+     */
+    function toInsertMultipleRows(
+        string memory prefix,
+        uint256 tableId,
+        string memory columns,
+        string memory values
+    ) public view returns (string memory) {
+        string memory name = toNameFromId(prefix, tableId);
+        (prefix, tableId);
+        return
+            string(
+                abi.encodePacked(
+                    "INSERT INTO ",
+                    name,
+                    " (",
+                    columns,
+                    ") VALUES ",
+                    values
+                )
+            );
+    }
+
     /**
      * @dev Generates an Update statement based on table prefix, tableId, setters, and filters.
      *
