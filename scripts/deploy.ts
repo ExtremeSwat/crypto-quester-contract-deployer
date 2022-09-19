@@ -1,18 +1,24 @@
 import { ethers } from "hardhat";
 
+// lib deploy
+// async function main() {
+//   const sqlHelpersLibrary = await ethers.getContractFactory("SQLHelpers");
+//   const sqlHelpers = await sqlHelpersLibrary.deploy();
+
+//   await sqlHelpers.deployed();
+// }
+
+// main contract deploy
 async function main() {
-  const currentTimestampInSeconds = Math.round(Date.now() / 1000);
-  const ONE_YEAR_IN_SECS = 365 * 24 * 60 * 60;
-  const unlockTime = currentTimestampInSeconds + ONE_YEAR_IN_SECS;
+  const sqlHelpersLibrary = await ethers.getContractFactory("CryptoQuest", {
+    libraries: {
+      SQLHelpers: '0x4eAb2af45639A53Ae1D9d28b1Ee3E43b108C8608'
+    }
+  });
+  const mumbaiReg = "0x4b48841d4b32C4650E4ABc117A03FE8B51f38F68";
+  const sqlHelpers = await sqlHelpersLibrary.deploy(mumbaiReg);
 
-  const lockedAmount = ethers.utils.parseEther("1");
-
-  const Lock = await ethers.getContractFactory("Lock");
-  const lock = await Lock.deploy(unlockTime, { value: lockedAmount });
-
-  await lock.deployed();
-
-  console.log(`Lock with 1 ETH and unlock timestamp ${unlockTime} deployed to ${lock.address}`);
+  await sqlHelpers.deployed();
 }
 
 // We recommend this pattern to be able to use async/await everywhere
