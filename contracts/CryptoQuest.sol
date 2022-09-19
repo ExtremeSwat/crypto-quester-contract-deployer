@@ -6,11 +6,15 @@ import "./CryptoQuestDeployer.sol";
 // todo: re-entrancy attack prevention
 // toDo: stop spamming STrings.bs this will cause extra gas units, just extract them to the upper lines of the function into memory vars, cheaper and cleanier
 
-abstract contract CryptoQuest is CryptoQuestDeployer {
+contract CryptoQuest is CryptoQuestDeployer {
     // Creation Events
     event ChallengeCreated(address indexed _userAddress, string title);
     event ParticipantJoined(address indexed _userAddress, uint256 challengeId);
     event CheckpointCreated(address indexed _userAddress, string title);
+
+    constructor(address registry) payable CryptoQuestDeployer(registry) {
+        
+    }
 
     /**
      * @dev Generates a checkpoint for a given challengeId
@@ -24,22 +28,14 @@ abstract contract CryptoQuest is CryptoQuestDeployer {
         string memory lat,
         string memory lng
     ) public payable validChallengeId(challengeId) {
+
         string memory currentTimestamp = Strings.toString(block.timestamp);
         string memory userAddress = Strings.toHexString(
             uint256(uint160(msg.sender)),
             20
         );
 
-        string memory checkPointTableName = SQLHelpers.toNameFromId(
-            challengeCheckpointsPrefix,
-            challengeCheckpointsTableId
-        );
-
-        string memory challengesTableName = SQLHelpers.toNameFromId(
-            challengesPrefix,
-            challengesTableId
-        );
-
+        string memory checkPointTableName = getChallengeCheckpointsTableName();
         string memory challengeIdStr = Strings.toString(challengeId);
 
         string memory checkpointInsertStatement = string.concat(
@@ -49,15 +45,25 @@ abstract contract CryptoQuest is CryptoQuestDeployer {
             " select cll.id, case when c.ordering is null then column1 else null) as ordering, column2, column3, column4, column5, ", currentTimestamp,",",
             " from (values(", Strings.toString(ordering), 
             ",'", title, "','", iconUrl,"',", lat,",", lng,
-            ")) v",
-            " left join ", challengesTableName ," cll on cll.id = ", challengeIdStr, " and cll.userAddress = '", userAddress, "'" ,
+            ")) v"
+        );
+
+        string memory leftJoin1 = string.concat(
+            " left join ", getChallengesTableName() ," cll on cll.id = ", challengeIdStr, " and cll.userAddress = '", userAddress, "'" 
+        );
+
+        string memory leftJoin2 = string.concat(
             " left join ", checkPointTableName, "c on c.ordering != ", Strings.toString(ordering), " and c.challengeId = ", challengeIdStr
         );
 
         _tableland.runSQL(
             address(this),
             challengeCheckpointsTableId,
-            checkpointInsertStatement
+            string.concat(
+                checkpointInsertStatement,
+                leftJoin1,
+                leftJoin2
+            )
         );
     }
 
@@ -69,21 +75,6 @@ abstract contract CryptoQuest is CryptoQuestDeployer {
      *
      */
     function removeCheckpoint(uint256 checkpointId) public payable {
-        string memory checkPointTableName = SQLHelpers.toNameFromId(
-            challengeCheckpointsPrefix,
-            challengeCheckpointsTableId
-        );
-
-        string memory checkpointTriggersTableName = SQLHelpers.toNameFromId(
-            challengeCheckpointTriggerPrefix,
-            challengeCheckpointTriggersTableId
-        );
-
-        string memory challengesTableName = SQLHelpers.toNameFromId(
-            challengesPrefix,
-            challengesTableId
-        );
-
         string memory userAddress = Strings.toHexString(
             uint256(uint160(msg.sender)),
             20
@@ -92,11 +83,11 @@ abstract contract CryptoQuest is CryptoQuestDeployer {
         string memory checkpointIdStr = Strings.toString(checkpointId);
 
         string memory deleteCheckpointStatement = string.concat(
-            "delete from ", checkPointTableName,
+            "delete from ", getChallengeCheckpointsTableName(),
             " where id =", checkpointIdStr,
             " and checkpointId = ", checkpointIdStr,
-            " and challengeId in (select id from ", challengesTableName, " where userAddress='", userAddress ,")",
-            " and id not in (select id from ", checkpointTriggersTableName, ", where checkpointId = ", checkpointIdStr, ")"
+            " and challengeId in (select id from ", getChallengesTableName(), " where userAddress='", userAddress ,")",
+            " and id not in (select id from ", getCheckpointTriggersTableName(), ", where checkpointId = ", checkpointIdStr, ")"
         );
 
         _tableland.runSQL(address(this), challengeCheckpointsTableId, deleteCheckpointStatement);
@@ -135,22 +126,26 @@ abstract contract CryptoQuest is CryptoQuestDeployer {
             "Can't create a challenge that'll last fewer than one hour !"
         );
 
-        (
-            string memory columns,
-            string memory values
-        ) = createChallengeInsertStatement(
-                title,
-                description,
-                fromTimestamp,
-                toTimestamp,
-                mapSkinId
-            );
-
         string memory insertStatement = SQLHelpers.toInsert(
             challengesPrefix,
             challengesTableId,
-            columns,
-            values
+            'title,description,fromTimestamp,toTimestamp,userAddress,creationTimestamp,mapSkinId,challengeStatus,mapSkinId',
+            string.concat(
+                "'",
+                title,
+                "','",
+                description,
+                "',",
+                Strings.toString(fromTimestamp),
+                ",",
+                Strings.toString(toTimestamp),
+                ",'",
+                Strings.toHexString(uint256(uint160(msg.sender)), 20),
+                "',",
+                Strings.toString(block.timestamp),
+                "','",
+                Strings.toString(mapSkinId)
+            )
         );
 
         _tableland.runSQL(address(this), challengesTableId, insertStatement);
@@ -168,26 +163,12 @@ abstract contract CryptoQuest is CryptoQuestDeployer {
         payable
         validChallengeId(challengeId)
     {
-        string memory participants = SQLHelpers.toNameFromId(
-            participantsPrefix,
-            participantsTableId
-        );
-
-        string memory users = SQLHelpers.toNameFromId(
-            usersPrefix,
-            usersTableId
-        );
-
-        string memory challengesTableName = SQLHelpers.toNameFromId(
-            challengesPrefix,
-            challengesTableId
-        );
-
         string memory userAddress = Strings.toHexString(uint256(uint160(msg.sender)), 20);
+        string memory participantsTableName = getParticipantsTableName();
 
         string memory insertStatement = string.concat(
             "insert into ",
-            participants,
+            participantsTableName,
             " (participant_address, joinTimestamp, challengeId)",
             " select case when c.userAddress == v.column1 or pa.id is not null or usr is null then null else column1 end, column2, c.id",
             " from ( values ( '", userAddress,
@@ -197,10 +178,10 @@ abstract contract CryptoQuest is CryptoQuestDeployer {
             Strings.toString(challengeId),
             ") ) v",
             // we must ensure ppl don't join while thing's started lmao
-            " left join ", challengesTableName ," c on v.column3 = c.id and ",
+            " left join ", getChallengesTableName() ," c on v.column3 = c.id and ",
             "(c.triggerTimestamp > v.column2 or c.triggerTimestamp is null)",
-            " left join ", participants, " pa on column1 = pa.participant_address",
-            " left join ", users ," usr on usr.userAddress = pa.participant_address"
+            " left join ", participantsTableName, " pa on column1 = pa.participant_address",
+            " left join ", getUsersTableName() ," usr on usr.userAddress = pa.participant_address"
         );
 
         _tableland.runSQL(address(this), challengesTableId, insertStatement);
@@ -218,16 +199,19 @@ abstract contract CryptoQuest is CryptoQuestDeployer {
         validChallengeId(challengeId)
     {
         string memory currentTimestamp = Strings.toString(block.timestamp);
-
-        string memory participantsTableName = SQLHelpers.toNameFromId(
-            participantsPrefix,
-            participantsTableId
-        );
-
-         string memory challengeCheckpointsTableName = SQLHelpers.toNameFromId(
-            challengeCheckpointsPrefix,
-            challengeCheckpointsTableId
-        );
+        string memory filter = string.concat(
+                "id=",
+                Strings.toString(challengeId),
+                // only the owner can do it
+                " and userAddress=",
+                Strings.toHexString(uint256(uint160(msg.sender)), 20),
+                // cannot alter an already started challenge && cannot be out of bounds
+                " and triggerTimestamp is null and fromTimestamp <=", currentTimestamp, " and toTimestamp >= ", currentTimestamp,
+                // at least one POI challenge exists
+                " and exists (select 'ex' from ", getChallengeCheckpointsTableName(), ", where challengeId = ", Strings.toString(challengeId), ")"
+                // at least one challenger has to participate
+                " and exists (select 'ex' from ", getParticipantsTableName(), " where challengeId = ", Strings.toString(challengeId),")"
+            );
 
         string memory updateStatement = SQLHelpers.toUpdate(
             challengesPrefix,
@@ -236,65 +220,24 @@ abstract contract CryptoQuest is CryptoQuestDeployer {
                 "triggerTimestamp= ",
                 Strings.toString(block.timestamp)
             ),
-            string.concat(
-                "id=",
-                Strings.toString(challengeId),
-                // only the owner can do it
-                " and userAddress=",
-                Strings.toHexString(uint256(uint160(msg.sender)), 20),
-                // cannot alter an already started challenge
-                " and triggerTimestamp is null",
-                // cannot be out of bounds
-                " and fromTimestamp <=",
-                currentTimestamp,
-                " and toTimestamp >= ",
-                currentTimestamp,
-                // at least one POI challenge exists
-                " and exists (select 'ex' from ", challengeCheckpointsTableName, ", where challengeId = ", Strings.toString(challengeId), ")"
-                // at least one challenger has to participate
-                " and exists (select 'ex' from ",
-                participantsTableName,
-                " where challengeId = ",
-                Strings.toString(challengeId),
-                ")"
-            )
+            filter
         );
 
         _tableland.runSQL(address(this), challengesTableId,  updateStatement);
     }
 
     function participantProgressCheckIn(uint256 challengeCheckpointId) public payable  {
-        string memory participantsTableName = SQLHelpers.toNameFromId(
-            participantsPrefix,
-            participantsTableId
-        );
-
-        string memory challengeCheckpointsTableName = SQLHelpers.toNameFromId(
-            challengeCheckpointsPrefix,
-            challengeCheckpointsTableId
-        );
-
-        string memory participantProgressTableName = SQLHelpers.toNameFromId(
-            participantProgressPrefix,
-            participantsProgressTableId
-        );
-
-        string memory challengesTableName = SQLHelpers.toNameFromId(
-            challengesPrefix,
-            challengesTableId
-        );
-
         string memory userAddress = Strings.toHexString(uint256(uint160(msg.sender)), 20);
         string memory currentTimestamp = Strings.toString(block.timestamp);
 
         string memory insertStatement = string.concat(
-            "insert into ", participantProgressTableName,
+            "insert into ", getParticipantProgressTableName(),
             " (participantId, challengeCheckpointId, visitTimestamp)",
             " select c.userAddress, cc.id, column3",
             " from ( values ( '", userAddress, "',", Strings.toString(challengeCheckpointId), ", ", currentTimestamp,") ) v",
-            " left join ", challengeCheckpointsTableName, " cc on cc.id=v.column2",
-            " left join ", challengesTableName, " c on c.id = cc.challengeId",
-            " left join ", participantsTableName, "p on p.challengeId = c.challengeId and p.userAddress = v.column1"
+            " left join ", getChallengeCheckpointsTableName(), " cc on cc.id=v.column2",
+            " left join ", getChallengesTableName(), " c on c.id = cc.challengeId",
+            " left join ", getParticipantsTableName(), "p on p.challengeId = c.challengeId and p.userAddress = v.column1"
         );
 
         _tableland.runSQL(address(this), participantsProgressTableId, insertStatement);
@@ -322,49 +265,46 @@ abstract contract CryptoQuest is CryptoQuestDeployer {
 
     // ------------------------------------------ PRIVATE METHODS ------------------------------------------------
 
-    /*
-        Generates values for insert
-    */
-    function createChallengeInsertStatement(
-        string memory title,
-        string memory description,
-        uint256 fromTimestamp,
-        uint256 toTimestamp,
-        uint256 mapSkinId
-    ) private view returns (string memory, string memory) {
-        string memory columns = string.concat(
-            "title,",
-            "description,",
-            "fromTimestamp,",
-            "toTimestamp,",
-            "userAddress,",
-            "creationTimestamp,",
-            "mapSkinId,",
-            "challengeStatus"
+    function getCheckpointTriggersTableName() private view returns (string memory) {
+        return SQLHelpers.toNameFromId(
+            challengeCheckpointTriggerPrefix,
+            challengeCheckpointTriggersTableId
         );
+    }
 
-        string memory values = string.concat(
-            "'",
-            title,
-            "',"
-            "'",
-            description,
-            "',",
-            Strings.toString(fromTimestamp),
-            ",",
-            Strings.toString(toTimestamp),
-            ",'",
-            Strings.toHexString(uint256(uint160(msg.sender)), 20),
-            "',",
-            Strings.toString(block.timestamp)
+    function getUsersTableName() private view returns (string memory) {
+        return SQLHelpers.toNameFromId(
+            usersPrefix,
+            usersTableId
         );
+    }
 
-        if (mapSkinId != 0) {
-            columns = string.concat(columns, ",", "mapSkinId");
-            values = string.concat(values, ",", Strings.toString(mapSkinId));
-        }
+    function getChallengesTableName() private view returns (string memory) {
+        return SQLHelpers.toNameFromId(
+            challengesPrefix,
+            challengesTableId
+        );
+    }
 
-        return (columns, values);
+    function getParticipantsTableName() private view returns (string memory) {
+        return SQLHelpers.toNameFromId (
+            participantsPrefix,
+            participantsTableId
+        );
+    }
+
+    function getChallengeCheckpointsTableName() private view returns (string memory) {
+        return SQLHelpers.toNameFromId(
+            challengeCheckpointsPrefix,
+            challengeCheckpointsTableId
+        );
+    }
+
+    function getParticipantProgressTableName() private view returns (string memory) {
+        return SQLHelpers.toNameFromId(
+            participantProgressPrefix,
+            participantsProgressTableId
+        );
     }
 
     // ------------------------------------------ PRIVATE METHODS ------------------------------------------------
