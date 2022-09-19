@@ -288,7 +288,7 @@ abstract contract CryptoQuest is CryptoQuestDeployer {
         string memory currentTimestamp = Strings.toString(block.timestamp);
 
         string memory insertStatement = string.concat(
-            "insert into", participantProgressTableName,
+            "insert into ", participantProgressTableName,
             " (participantId, challengeCheckpointId, visitTimestamp)",
             " select c.userAddress, cc.id, column3",
             " from ( values ( '", userAddress, "',", Strings.toString(challengeCheckpointId), ", ", currentTimestamp,") ) v",
@@ -298,6 +298,26 @@ abstract contract CryptoQuest is CryptoQuestDeployer {
         );
 
         _tableland.runSQL(address(this), participantsProgressTableId, insertStatement);
+    }
+
+    function createNewUser(string memory nickName) public payable {
+        string memory userAddress = Strings.toHexString(
+            uint256(uint160(msg.sender)),
+            20
+        );
+
+        string memory currentTimestamp = Strings.toString(block.timestamp);
+
+        string memory insertStatement = 
+            SQLHelpers.toInsert
+                (
+                    usersPrefix, 
+                    usersTableId, 
+                    "userAddress, nickname, registeredDate",
+                    string.concat("'", userAddress, "', '", nickName, "', ", currentTimestamp)
+                );
+
+        _tableland.runSQL(address(this), usersTableId, insertStatement);
     }
 
     // ------------------------------------------ PRIVATE METHODS ------------------------------------------------
