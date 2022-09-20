@@ -41,7 +41,7 @@ contract CryptoQuestDeployer is Ownable, ERC721Holder {
         _tableland = ITablelandTables(registry);
     }
     
-    function initializeBaseTables() public payable onlyOwner {
+    function createBaseTables() public payable onlyOwner {
         mapSkinsTableId = _tableland.createTable(
             address(this),
             SQLHelpers.toCreateFromSchema(
@@ -97,12 +97,9 @@ contract CryptoQuestDeployer is Ownable, ERC721Holder {
                 "id integer primary key not null, participantId integer not null, challengeCheckpointId integer not null, visitTimestamp integer not null, unique(participantId, challengeCheckpointId)"
             )
         );
-
-        // running data seeds
-        mapSkinsDataSeed();
     }
 
-    function mapSkinsDataSeed() private onlyOwner {
+    function initiateDataSeed() public payable onlyOwner {
         string memory multipleRowsStatement = SQLHelpers.toInsertMultipleRows(
             mapSkinsPrefix,
             mapSkinsTableId,
