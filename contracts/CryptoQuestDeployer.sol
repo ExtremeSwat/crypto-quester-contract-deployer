@@ -32,13 +32,12 @@ contract CryptoQuestDeployer is Ownable, ERC721Holder {
 
     // additional tables
     mapping(string => uint256) customTables;
+    mapping(string => uint256) baseTables;
 
     // Interface to the `TablelandTables` registry contract
     ITablelandTables internal _tableland;
 
-    constructor() {
-
-    }
+    constructor() {}
 
     function initializeBaseTables(address registry) public payable onlyOwner {
         _tableland = ITablelandTables(registry);
@@ -46,7 +45,7 @@ contract CryptoQuestDeployer is Ownable, ERC721Holder {
             address(this),
             SQLHelpers.toCreateFromSchema(
                 mapSkinsPrefix,
-                "(id integer primary key not null, skinName text not null, imagePreviewUrl text not null, mapUri text not null, unique(mapUri), unique(skinName))"
+                "id integer primary key not null, skinName text not null, imagePreviewUrl text not null, mapUri text not null, unique(mapUri), unique(skinName)"
             )
         );
 
@@ -54,7 +53,7 @@ contract CryptoQuestDeployer is Ownable, ERC721Holder {
             address(this),
             SQLHelpers.toCreateFromSchema(
                 usersPrefix,
-                "(userAddress text not null primary key, nickName text not null, registeredDate integer not null, unique(userAddress, nickName))"
+                "userAddress text not null primary key, nickName text not null, registeredDate integer not null, unique(userAddress, nickName)"
             )
         );
 
@@ -62,7 +61,7 @@ contract CryptoQuestDeployer is Ownable, ERC721Holder {
             address(this),
             SQLHelpers.toCreateFromSchema(
                 challengesPrefix,
-                "(id integer primary key NOT NULL,title text not null unique,description text not null,fromTimestamp integer not null,toTimestamp integer not null,triggerTimestamp integer,userAddress text not null,creationTimestamp integer not null,mapSkinId integer not null, challengeStatus integer not null, unique(title))"
+                "id integer primary key NOT NULL,title text not null unique,description text not null,fromTimestamp integer not null,toTimestamp integer not null,triggerTimestamp integer,userAddress text not null,creationTimestamp integer not null,mapSkinId integer not null, challengeStatus integer not null, unique(title)"
             )
         );
 
@@ -70,7 +69,7 @@ contract CryptoQuestDeployer is Ownable, ERC721Holder {
             address(this),
             SQLHelpers.toCreateFromSchema(
                 challengeCheckpointsPrefix,
-                "(id integer primary key not null, challengeId integer not null, ordering integer not null, title text not null, iconUrl text unique not null, lat real not null, lng real not null, creationTimestamp integer not null)"
+                "id integer primary key not null, challengeId integer not null, ordering integer not null, title text not null, iconUrl text unique not null, lat real not null, lng real not null, creationTimestamp integer not null"
             )
         );
 
@@ -78,7 +77,7 @@ contract CryptoQuestDeployer is Ownable, ERC721Holder {
             address(this),
             SQLHelpers.toCreateFromSchema(
                 challengeCheckpointTriggerPrefix,
-                "(id integer primary key not null, checkpointId integer not null, title text not null, imageUrl text not null, isPhotoRequired integer null, photoDescription text null, isUserInputRequired integer not null, userInputDescription text null, userInputAnswer text null)"
+                "id integer primary key not null, checkpointId integer not null, title text not null, imageUrl text not null, isPhotoRequired integer null, photoDescription text null, isUserInputRequired integer not null, userInputDescription text null, userInputAnswer text null"
             )
         );
 
@@ -86,15 +85,15 @@ contract CryptoQuestDeployer is Ownable, ERC721Holder {
             address(this),
             SQLHelpers.toCreateFromSchema(
                 participantsPrefix,
-                "(id integer primary key not null, userAddress text not null, joinTimestamp integer not null, challengeId integer not null, unique(userAddress, challengeId)"
+                "id integer primary key not null, userAddress text not null, joinTimestamp integer not null, challengeId integer not null, unique(userAddress, challengeId)"
             )
         );
 
         participantsProgressTableId = _tableland.createTable(
             address(this),
             SQLHelpers.toCreateFromSchema(
-                "participant_progress",
-                "(id integer primary key not null, participantId integer not null, challengeCheckpointId integer not null, visitTimestamp integer not null, unique(challenge_participant_id, challenge_location_id))"
+                participantProgressPrefix,
+                "id integer primary key not null, participantId integer not null, challengeCheckpointId integer not null, visitTimestamp integer not null, unique(participantId, challengeCheckpointId)"
             )
         );
 
@@ -158,4 +157,106 @@ contract CryptoQuestDeployer is Ownable, ERC721Holder {
     receive() external payable {}
 
     fallback() external payable {}
+
+    function getCheckpointTriggersTableName()
+        internal
+        view
+        returns (string memory)
+    {
+        return
+            SQLHelpers.toNameFromId(
+                challengeCheckpointTriggerPrefix,
+                challengeCheckpointTriggersTableId
+            );
+    }
+
+    function getUsersTableName() internal view returns (string memory) {
+        return SQLHelpers.toNameFromId(usersPrefix, usersTableId);
+    }
+
+    function getChallengesTableName() internal view returns (string memory) {
+        return SQLHelpers.toNameFromId(challengesPrefix, challengesTableId);
+    }
+
+    function getParticipantsTableName() internal view returns (string memory) {
+        return SQLHelpers.toNameFromId(participantsPrefix, participantsTableId);
+    }
+
+    function getChallengeCheckpointsTableName()
+        internal
+        view
+        returns (string memory)
+    {
+        return
+            SQLHelpers.toNameFromId(
+                challengeCheckpointsPrefix,
+                challengeCheckpointsTableId
+            );
+    }
+
+    function getParticipantProgressTableName()
+        internal
+        view
+        returns (string memory)
+    {
+        return
+            SQLHelpers.toNameFromId(
+                participantProgressPrefix,
+                participantsProgressTableId
+            );
+    }
+
+    function getMapSkinsTableName() internal view returns (string memory) {
+        return SQLHelpers.toNameFromId(
+            mapSkinsPrefix,
+            mapSkinsTableId
+        );
+    }
+
+    //00000000000000000000 debug
+    
+    // function getmapSkins() public view returns (string memory) {
+    //     return SQLHelpers.toCreateFromSchema(
+    //     mapSkinsPrefix,
+    //     "id integer primary key not null, skinName text not null, imagePreviewUrl text not null, mapUri text not null, unique(mapUri), unique(skinName)"
+    // );
+    // }
+    // function getusers() public view returns (string memory) {
+    //     return SQLHelpers.toCreateFromSchema(
+    //     usersPrefix,
+    //     "userAddress text not null primary key, nickName text not null, registeredDate integer not null, unique(userAddress, nickName)"
+    // );
+    // }
+    // function getchallenges() public view returns (string memory) {
+    //     return SQLHelpers.toCreateFromSchema(
+    //     challengesPrefix,
+    //     "id integer primary key NOT NULL,title text not null unique,description text not null,fromTimestamp integer not null,toTimestamp integer not null,triggerTimestamp integer,userAddress text not null,creationTimestamp integer not null,mapSkinId integer not null, challengeStatus integer not null, unique(title)"
+    // );
+    // }
+    // function getchallengeCheckpoints() public view returns (string memory) {
+    //     return SQLHelpers.toCreateFromSchema(
+    //     challengeCheckpointsPrefix,
+    //     "id integer primary key not null, challengeId integer not null, ordering integer not null, title text not null, iconUrl text unique not null, lat real not null, lng real not null, creationTimestamp integer not null"
+    // );
+    // }
+    // function getchallengeCheckpointTrigger() public view returns (string memory) {
+    //     return SQLHelpers.toCreateFromSchema(
+    //     challengeCheckpointTriggerPrefix,
+    //     "id integer primary key not null, checkpointId integer not null, title text not null, imageUrl text not null, isPhotoRequired integer null, photoDescription text null, isUserInputRequired integer not null, userInputDescription text null, userInputAnswer text null"
+    // );
+    // }
+    // function getparticipants() public view returns (string memory) {
+    //     return SQLHelpers.toCreateFromSchema(
+    //     participantsPrefix,
+    //     "id integer primary key not null, userAddress text not null, joinTimestamp integer not null, challengeId integer not null, unique(userAddress, challengeId)"
+    // );
+    // }
+    // function getparticipantProgress() public view returns (string memory) {
+    //     return SQLHelpers.toCreateFromSchema(
+    //     participantProgressPrefix,
+    //     "id integer primary key not null, participantId integer not null, challengeCheckpointId integer not null, visitTimestamp integer not null, unique(participantId, challengeCheckpointId)"
+    // );
+    // }
+
+    //00000000000000000000
 }

@@ -245,48 +245,6 @@ contract CryptoQuest is CryptoQuestDeployer {
         );
     }
 
-    function getCheckpointTriggersTableName() private view returns (string memory) {
-        return SQLHelpers.toNameFromId(
-            challengeCheckpointTriggerPrefix,
-            challengeCheckpointTriggersTableId
-        );
-    }
-
-    function getUsersTableName() private view returns (string memory) {
-        return SQLHelpers.toNameFromId(
-            usersPrefix,
-            usersTableId
-        );
-    }
-
-    function getChallengesTableName() private view returns (string memory) {
-        return SQLHelpers.toNameFromId(
-            challengesPrefix,
-            challengesTableId
-        );
-    }
-
-    function getParticipantsTableName() private view returns (string memory) {
-        return SQLHelpers.toNameFromId (
-            participantsPrefix,
-            participantsTableId
-        );
-    }
-
-    function getChallengeCheckpointsTableName() private view returns (string memory) {
-        return SQLHelpers.toNameFromId(
-            challengeCheckpointsPrefix,
-            challengeCheckpointsTableId
-        );
-    }
-
-    function getParticipantProgressTableName() private view returns (string memory) {
-        return SQLHelpers.toNameFromId(
-            participantProgressPrefix,
-            participantsProgressTableId
-        );
-    }
-
     // ------------------------------------------ PRIVATE METHODS ------------------------------------------------
 
     // ------------------------------------------ Modifiers ------------------------------------------------
