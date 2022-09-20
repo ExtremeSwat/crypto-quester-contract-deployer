@@ -38,7 +38,7 @@ contract CryptoQuest is CryptoQuestDeployer {
             "insert into ",
             checkPointTableName,
             " (challengeId, ordering, title, iconUrl, lat, lng, creationTimestamp)",
-            " select cll.id, case when c.ordering is null then column1 else null) as ordering, column2, column3, column4, column5, ", currentTimestamp,",",
+            " select cll.id, case when c.ordering is null then column1 else null end ordering, column2, column3, column4, column5, ", currentTimestamp,
             " from (values(", Strings.toString(ordering), 
             ",'", title, "','", iconUrl,"',", lat,",", lng,
             ")) v"
@@ -49,7 +49,7 @@ contract CryptoQuest is CryptoQuestDeployer {
         );
 
         string memory leftJoin2 = string.concat(
-            " left join ", checkPointTableName, "c on c.ordering != ", Strings.toString(ordering), " and c.challengeId = ", challengeIdStr
+            " left join ", checkPointTableName, " c on c.ordering != ", Strings.toString(ordering), " and c.challengeId = ", challengeIdStr
         );
 
         _tableland.runSQL(
@@ -76,9 +76,8 @@ contract CryptoQuest is CryptoQuestDeployer {
         string memory deleteCheckpointStatement = string.concat(
             "delete from ", getChallengeCheckpointsTableName(),
             " where id =", checkpointIdStr,
-            " and checkpointId = ", checkpointIdStr,
-            " and challengeId in (select id from ", getChallengesTableName(), " where userAddress='", getUserAddressAsString() ,")",
-            " and id not in (select id from ", getCheckpointTriggersTableName(), ", where checkpointId = ", checkpointIdStr, ")"
+            " and challengeId in (select id from ", getChallengesTableName(), " where userAddress='", getUserAddressAsString() ,"')",
+            " and id not in (select id from ", getCheckpointTriggersTableName(), " where checkpointId = ", checkpointIdStr, ")"
         );
 
         _tableland.runSQL(address(this), challengeCheckpointsTableId, deleteCheckpointStatement);
@@ -108,7 +107,7 @@ contract CryptoQuest is CryptoQuestDeployer {
         string memory insertStatement = SQLHelpers.toInsert(
             challengesPrefix,
             challengesTableId,
-            'title,description,fromTimestamp,toTimestamp,userAddress,creationTimestamp,mapSkinId,challengeStatus,mapSkinId',
+            'title,description,fromTimestamp,toTimestamp,userAddress,creationTimestamp,mapSkinId,challengeStatus',
             string.concat(
                 "'",
                 title,
@@ -122,8 +121,10 @@ contract CryptoQuest is CryptoQuestDeployer {
                 getUserAddressAsString(),
                 "',",
                 Strings.toString(block.timestamp),
-                "','",
-                Strings.toString(mapSkinId)
+                ",",
+                Strings.toString(mapSkinId),
+                ",",
+                Strings.toString(0)
             )
         );
 
@@ -147,8 +148,8 @@ contract CryptoQuest is CryptoQuestDeployer {
         string memory insertStatement = string.concat(
             "insert into ",
             participantsTableName,
-            " (participant_address, joinTimestamp, challengeId)",
-            " select case when c.userAddress == v.column1 or pa.id is not null or usr is null then null else column1 end, column2, c.id",
+            " (userAddress, joinTimestamp, challengeId)",
+            " select case when c.userAddress == v.column1 or pa.id is not null or usr.userAddress is null then null else column1 end, column2, c.id",
             " from ( values ( '", getUserAddressAsString(),
             "',",
             Strings.toString(block.timestamp),
@@ -158,8 +159,8 @@ contract CryptoQuest is CryptoQuestDeployer {
             // we must ensure ppl don't join while thing's started lmao
             " left join ", getChallengesTableName() ," c on v.column3 = c.id and ",
             "(c.triggerTimestamp > v.column2 or c.triggerTimestamp is null)",
-            " left join ", participantsTableName, " pa on column1 = pa.participant_address",
-            " left join ", getUsersTableName() ," usr on usr.userAddress = pa.participant_address"
+            " left join ", participantsTableName, " pa on column1 = pa.userAddress",
+            " left join ", getUsersTableName() ," usr on usr.userAddress = pa.userAddress"
         );
 
         _tableland.runSQL(address(this), challengesTableId, insertStatement);
@@ -181,12 +182,12 @@ contract CryptoQuest is CryptoQuestDeployer {
                 "id=",
                 Strings.toString(challengeId),
                 // only the owner can do it
-                " and userAddress=",
+                " and userAddress='",
                 getUserAddressAsString(),
                 // cannot alter an already started challenge && cannot be out of bounds
-                " and triggerTimestamp is null and fromTimestamp <=", currentTimestamp, " and toTimestamp >= ", currentTimestamp,
+                "' and triggerTimestamp is null and fromTimestamp <=", currentTimestamp, " and toTimestamp >= ", currentTimestamp,
                 // at least one POI challenge exists
-                " and exists (select 'ex' from ", getChallengeCheckpointsTableName(), ", where challengeId = ", Strings.toString(challengeId), ")"
+                " and exists (select 'ex' from ", getChallengeCheckpointsTableName(), " where challengeId = ", Strings.toString(challengeId), ")"
                 // at least one challenger has to participate
                 " and exists (select 'ex' from ", getParticipantsTableName(), " where challengeId = ", Strings.toString(challengeId),")"
             );
@@ -215,7 +216,7 @@ contract CryptoQuest is CryptoQuestDeployer {
             " from ( values ( '", userAddress, "',", Strings.toString(challengeCheckpointId), ", ", currentTimestamp,") ) v",
             " left join ", getChallengeCheckpointsTableName(), " cc on cc.id=v.column2",
             " left join ", getChallengesTableName(), " c on c.id = cc.challengeId",
-            " left join ", getParticipantsTableName(), "p on p.challengeId = c.challengeId and p.userAddress = v.column1"
+            " left join ", getParticipantsTableName(), " p on p.challengeId = c.id and p.userAddress = v.column1"
         );
 
         _tableland.runSQL(address(this), participantsProgressTableId, insertStatement);
