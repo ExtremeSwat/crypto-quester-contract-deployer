@@ -111,12 +111,6 @@ contract CryptoQuest is CryptoQuestDeployer {
             "Cannot set a range for the past !"
         );
 
-        // can't create a challenge with a diff < 8 h, maybe we should have it configurable from UI ?
-        require(
-            toTimestamp - fromTimestamp > 8 hours,
-            "Can't create a challenge that'll last fewer than one hour !"
-        );
-
         string memory insertStatement = SQLHelpers.toInsert(
             challengesPrefix,
             challengesTableId,
