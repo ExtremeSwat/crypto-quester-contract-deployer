@@ -36,17 +36,12 @@ contract CryptoQuestDeployer is Ownable, ERC721Holder {
     // Interface to the `TablelandTables` registry contract
     ITablelandTables internal _tableland;
 
-    constructor(address registry) payable {
-        _tableland = ITablelandTables(registry);
+    constructor() {
 
-        // innitting base entities
-        initializeBaseTables();
-
-        // running data seeds
-        mapSkinsDataSeed();
     }
 
-    function initializeBaseTables() public payable onlyOwner {
+    function initializeBaseTables(address registry) public payable onlyOwner {
+        _tableland = ITablelandTables(registry);
         mapSkinsTableId = _tableland.createTable(
             address(this),
             SQLHelpers.toCreateFromSchema(
@@ -102,28 +97,33 @@ contract CryptoQuestDeployer is Ownable, ERC721Holder {
                 "(id integer primary key not null, participantId integer not null, challengeCheckpointId integer not null, visitTimestamp integer not null, unique(challenge_participant_id, challenge_location_id))"
             )
         );
+
+        // running data seeds
+        mapSkinsDataSeed();
     }
 
-    function mapSkinsDataSeed() public onlyOwner{
-        string memory multipleRowsStatement = SQLHelpers.toInsertMultipleRows
-        (
-            mapSkinsPrefix, 
-            mapSkinsTableId, 
-            'skinName, imagePreviewUrl, mapUri',
-            string.concat
-                (
-                    "('Standard', 'https://api.mapbox.com/styles/v1/juvie22/cjtizpqis1exb1fqunbiqcw4y/static/26.1025,44.4268,10/512x341?access_token=pk.eyJ1IjoianV2aWUyMiIsImEiOiJjajNoN3hzeDEwMDFuMzNxZ2txeXR1ZnIzIn0.2Thoi_xQLD5f9d_R_DD7lg', 'mapbox://styles/juvie22/cjtizpqis1exb1fqunbiqcw4y'),",
-                    "('Comics', 'https://api.mapbox.com/styles/v1/juvie22/cjvdxmakw0fqh1fp8z47jqge5/static/26.1025,44.4268,10/512x341?access_token=pk.eyJ1IjoianV2aWUyMiIsImEiOiJjajNoN3hzeDEwMDFuMzNxZ2txeXR1ZnIzIn0.2Thoi_xQLD5f9d_R_DD7lg', 'mapbox://styles/juvie22/cjvdxmakw0fqh1fp8z47jqge5'),",
-                    "('Neon', 'https://api.mapbox.com/styles/v1/juvie22/cjvuxjxne0l4p1cpjbjwtn0k9/static/26.1025,44.4268,10/512x341?access_token=pk.eyJ1IjoianV2aWUyMiIsImEiOiJjajNoN3hzeDEwMDFuMzNxZ2txeXR1ZnIzIn0.2Thoi_xQLD5f9d_R_DD7lg', 'mapbox://styles/juvie22/cjvuxjxne0l4p1cpjbjwtn0k9'),",
-                    "('Blueprint', 'https://api.mapbox.com/styles/v1/juvie22/cjvuxaacd3ncv1cqvd6edffc2/static/26.1025,44.4268,10/512x341?access_token=pk.eyJ1IjoianV2aWUyMiIsImEiOiJjajNoN3hzeDEwMDFuMzNxZ2txeXR1ZnIzIn0.2Thoi_xQLD5f9d_R_DD7lg', 'mapbox://styles/juvie22/cjvuxaacd3ncv1cqvd6edffc2'),",
-                    "('Western', 'https://api.mapbox.com/styles/v1/juvie22/cjvuwejv70iaw1cqnb846caqy/static/26.1025,44.4268,10/512x341?access_token=pk.eyJ1IjoianV2aWUyMiIsImEiOiJjajNoN3hzeDEwMDFuMzNxZ2txeXR1ZnIzIn0.2Thoi_xQLD5f9d_R_DD7lg', 'mapbox://styles/juvie22/cjvuwejv70iaw1cqnb846caqy'),",
-                    "('Candy', 'https://api.mapbox.com/styles/v1/juvie22/cjvuvwhv90rhn1cpbpgactgnm/static/26.1025,44.4268,10/512x341?access_token=pk.eyJ1IjoianV2aWUyMiIsImEiOiJjajNoN3hzeDEwMDFuMzNxZ2txeXR1ZnIzIn0.2Thoi_xQLD5f9d_R_DD7lg', 'mapbox://styles/juvie22/cjvuvwhv90rhn1cpbpgactgnm'),",
-                    "('Noir', 'https://api.mapbox.com/styles/v1/juvie22/cjtj02zko4xbc1fpkv8dtolu3/static/26.1025,44.4268,10/512x341?access_token=pk.eyJ1IjoianV2aWUyMiIsImEiOiJjajNoN3hzeDEwMDFuMzNxZ2txeXR1ZnIzIn0.2Thoi_xQLD5f9d_R_DD7lg', 'mapbox://styles/juvie22/cjtj02zko4xbc1fpkv8dtolu3'),",
-                    "('Virus', 'https://api.mapbox.com/styles/v1/juvie22/cj7i2ftv34zpd2smtm3ik41fq/static/26.1025,44.4268,10/512x341?access_token=pk.eyJ1IjoianV2aWUyMiIsImEiOiJjajNoN3hzeDEwMDFuMzNxZ2txeXR1ZnIzIn0.2Thoi_xQLD5f9d_R_DD7lg', 'mapbox://styles/juvie22/cj7i2ftv34zpd2smtm3ik41fq')"
-                )
-         );
+    function mapSkinsDataSeed() private onlyOwner {
+        string memory multipleRowsStatement = SQLHelpers.toInsertMultipleRows(
+            mapSkinsPrefix,
+            mapSkinsTableId,
+            "skinName, imagePreviewUrl, mapUri",
+            string.concat(
+                "('Standard', 'https://api.mapbox.com/styles/v1/juvie22/cjtizpqis1exb1fqunbiqcw4y/static/26.1025,44.4268,10/512x341?access_token=pk.eyJ1IjoianV2aWUyMiIsImEiOiJjajNoN3hzeDEwMDFuMzNxZ2txeXR1ZnIzIn0.2Thoi_xQLD5f9d_R_DD7lg', 'mapbox://styles/juvie22/cjtizpqis1exb1fqunbiqcw4y'),",
+                "('Comics', 'https://api.mapbox.com/styles/v1/juvie22/cjvdxmakw0fqh1fp8z47jqge5/static/26.1025,44.4268,10/512x341?access_token=pk.eyJ1IjoianV2aWUyMiIsImEiOiJjajNoN3hzeDEwMDFuMzNxZ2txeXR1ZnIzIn0.2Thoi_xQLD5f9d_R_DD7lg', 'mapbox://styles/juvie22/cjvdxmakw0fqh1fp8z47jqge5'),",
+                "('Neon', 'https://api.mapbox.com/styles/v1/juvie22/cjvuxjxne0l4p1cpjbjwtn0k9/static/26.1025,44.4268,10/512x341?access_token=pk.eyJ1IjoianV2aWUyMiIsImEiOiJjajNoN3hzeDEwMDFuMzNxZ2txeXR1ZnIzIn0.2Thoi_xQLD5f9d_R_DD7lg', 'mapbox://styles/juvie22/cjvuxjxne0l4p1cpjbjwtn0k9'),",
+                "('Blueprint', 'https://api.mapbox.com/styles/v1/juvie22/cjvuxaacd3ncv1cqvd6edffc2/static/26.1025,44.4268,10/512x341?access_token=pk.eyJ1IjoianV2aWUyMiIsImEiOiJjajNoN3hzeDEwMDFuMzNxZ2txeXR1ZnIzIn0.2Thoi_xQLD5f9d_R_DD7lg', 'mapbox://styles/juvie22/cjvuxaacd3ncv1cqvd6edffc2'),",
+                "('Western', 'https://api.mapbox.com/styles/v1/juvie22/cjvuwejv70iaw1cqnb846caqy/static/26.1025,44.4268,10/512x341?access_token=pk.eyJ1IjoianV2aWUyMiIsImEiOiJjajNoN3hzeDEwMDFuMzNxZ2txeXR1ZnIzIn0.2Thoi_xQLD5f9d_R_DD7lg', 'mapbox://styles/juvie22/cjvuwejv70iaw1cqnb846caqy'),",
+                "('Candy', 'https://api.mapbox.com/styles/v1/juvie22/cjvuvwhv90rhn1cpbpgactgnm/static/26.1025,44.4268,10/512x341?access_token=pk.eyJ1IjoianV2aWUyMiIsImEiOiJjajNoN3hzeDEwMDFuMzNxZ2txeXR1ZnIzIn0.2Thoi_xQLD5f9d_R_DD7lg', 'mapbox://styles/juvie22/cjvuvwhv90rhn1cpbpgactgnm'),",
+                "('Noir', 'https://api.mapbox.com/styles/v1/juvie22/cjtj02zko4xbc1fpkv8dtolu3/static/26.1025,44.4268,10/512x341?access_token=pk.eyJ1IjoianV2aWUyMiIsImEiOiJjajNoN3hzeDEwMDFuMzNxZ2txeXR1ZnIzIn0.2Thoi_xQLD5f9d_R_DD7lg', 'mapbox://styles/juvie22/cjtj02zko4xbc1fpkv8dtolu3'),",
+                "('Virus', 'https://api.mapbox.com/styles/v1/juvie22/cj7i2ftv34zpd2smtm3ik41fq/static/26.1025,44.4268,10/512x341?access_token=pk.eyJ1IjoianV2aWUyMiIsImEiOiJjajNoN3hzeDEwMDFuMzNxZ2txeXR1ZnIzIn0.2Thoi_xQLD5f9d_R_DD7lg', 'mapbox://styles/juvie22/cj7i2ftv34zpd2smtm3ik41fq')"
+            )
+        );
 
-         _tableland.runSQL(address(this), mapSkinsTableId, multipleRowsStatement);
+        _tableland.runSQL(
+            address(this),
+            mapSkinsTableId,
+            multipleRowsStatement
+        );
     }
 
     function createCustomTable(

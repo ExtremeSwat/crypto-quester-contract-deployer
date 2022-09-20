@@ -12,7 +12,7 @@ contract CryptoQuest is CryptoQuestDeployer {
     event ParticipantJoined(address indexed _userAddress, uint256 challengeId);
     event CheckpointCreated(address indexed _userAddress, string title);
 
-    constructor(address registry) payable CryptoQuestDeployer(registry) {
+    constructor() payable {
         
     }
 
