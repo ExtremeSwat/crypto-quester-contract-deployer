@@ -15,7 +15,10 @@ async function main() {
       SQLHelpers: '0x4eAb2af45639A53Ae1D9d28b1Ee3E43b108C8608'
     }
   });
-  const cryptoQuest = await cryptoQuestFactory.deploy();
+
+  //polygon mumbai chain
+  const registry = "0x4b48841d4b32C4650E4ABc117A03FE8B51f38F68";
+  const cryptoQuest = await cryptoQuestFactory.deploy(registry);
   await cryptoQuest.deployed();
 }
 

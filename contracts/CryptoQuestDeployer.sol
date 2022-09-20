@@ -37,10 +37,11 @@ contract CryptoQuestDeployer is Ownable, ERC721Holder {
     // Interface to the `TablelandTables` registry contract
     ITablelandTables internal _tableland;
 
-    constructor() {}
-
-    function initializeBaseTables(address registry) public payable onlyOwner {
+    constructor(address registry) {
         _tableland = ITablelandTables(registry);
+    }
+    
+    function initializeBaseTables() public payable onlyOwner {
         mapSkinsTableId = _tableland.createTable(
             address(this),
             SQLHelpers.toCreateFromSchema(
@@ -77,7 +78,7 @@ contract CryptoQuestDeployer is Ownable, ERC721Holder {
             address(this),
             SQLHelpers.toCreateFromSchema(
                 challengeCheckpointTriggerPrefix,
-                "id integer primary key not null, checkpointId integer not null, title text not null, imageUrl text not null, isPhotoRequired integer null, photoDescription text null, isUserInputRequired integer not null, userInputDescription text null, userInputAnswer text null"
+                "id integer primary key not null, checkpointId integer not null, title text not null, imageUrl text not null, isPhotoRequired integer, photoDescription text, isUserInputRequired integer not, userInputDescription text, userInputAnswer text"
             )
         );
 
@@ -155,21 +156,6 @@ contract CryptoQuestDeployer is Ownable, ERC721Holder {
         return tableName;
     }
 
-    function createCustomTableStatement(
-        string memory prefix,
-        string memory createStatement
-    ) public payable onlyOwner returns (string memory) {
-         return string.concat(
-                "CREATE TABLE ",
-                prefix,
-                "_",
-                Strings.toString(block.chainid),
-                " (",
-                createStatement,
-                ")"
-            );
-    }
-
     receive() external payable {}
 
     fallback() external payable {}
@@ -223,14 +209,11 @@ contract CryptoQuestDeployer is Ownable, ERC721Holder {
     }
 
     function getMapSkinsTableName() internal view returns (string memory) {
-        return SQLHelpers.toNameFromId(
-            mapSkinsPrefix,
-            mapSkinsTableId
-        );
+        return SQLHelpers.toNameFromId(mapSkinsPrefix, mapSkinsTableId);
     }
 
     //00000000000000000000 debug
-    
+
     // function getmapSkins() public view returns (string memory) {
     //     return SQLHelpers.toCreateFromSchema(
     //     mapSkinsPrefix,
