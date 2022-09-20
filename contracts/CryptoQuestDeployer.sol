@@ -45,7 +45,7 @@ contract CryptoQuestDeployer is Ownable, ERC721Holder {
             address(this),
             SQLHelpers.toCreateFromSchema(
                 mapSkinsPrefix,
-                "id integer primary key not null, skinName text not null, imagePreviewUrl text not null, mapUri text not null, unique(mapUri), unique(skinName)"
+                "id integer primary key not null, skinName text not null unique, imagePreviewUrl text not null, mapUri text not null unique"
             )
         );
 
@@ -61,7 +61,7 @@ contract CryptoQuestDeployer is Ownable, ERC721Holder {
             address(this),
             SQLHelpers.toCreateFromSchema(
                 challengesPrefix,
-                "id integer primary key NOT NULL,title text not null unique,description text not null,fromTimestamp integer not null,toTimestamp integer not null,triggerTimestamp integer,userAddress text not null,creationTimestamp integer not null,mapSkinId integer not null, challengeStatus integer not null, unique(title)"
+                "id integer primary key NOT NULL,title text not null unique,description text not null,fromTimestamp integer not null,toTimestamp integer not null,triggerTimestamp integer, userAddress text not null,creationTimestamp integer not null,mapSkinId integer not null, challengeStatus integer not null, unique(title)"
             )
         );
 
@@ -136,8 +136,9 @@ contract CryptoQuestDeployer is Ownable, ERC721Holder {
                 prefix,
                 "_",
                 Strings.toString(block.chainid),
-                " ",
-                createStatement
+                " (",
+                createStatement,
+                ")"
             )
         );
 
@@ -152,6 +153,21 @@ contract CryptoQuestDeployer is Ownable, ERC721Holder {
         customTables[tableName] = tableId;
 
         return tableName;
+    }
+
+    function createCustomTableStatement(
+        string memory prefix,
+        string memory createStatement
+    ) public payable onlyOwner returns (string memory) {
+         return string.concat(
+                "CREATE TABLE ",
+                prefix,
+                "_",
+                Strings.toString(block.chainid),
+                " (",
+                createStatement,
+                ")"
+            );
     }
 
     receive() external payable {}
