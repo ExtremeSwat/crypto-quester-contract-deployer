@@ -105,12 +105,6 @@ contract CryptoQuest is CryptoQuestDeployer {
         // preventing jumbled timestamps
         require(fromTimestamp < toTimestamp, "Wrong start-end range !");
 
-        // can't create things in the past lmao
-        require(
-            block.timestamp > fromTimestamp,
-            "Cannot set a range for the past !"
-        );
-
         string memory insertStatement = SQLHelpers.toInsert(
             challengesPrefix,
             challengesTableId,
