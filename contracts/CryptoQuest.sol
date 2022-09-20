@@ -105,9 +105,15 @@ contract CryptoQuest is CryptoQuestDeployer {
         // preventing jumbled timestamps
         require(fromTimestamp < toTimestamp, "Wrong start-end range !");
 
+        // can't create things in the past lmao
+        require(
+            block.timestamp > fromTimestamp,
+            "Cannot set a range for the past !"
+        );
+
         // can't create a challenge with a diff < 8 h, maybe we should have it configurable from UI ?
         require(
-            toTimestamp - fromTimestamp < 8 hours,
+            toTimestamp - fromTimestamp > 8 hours,
             "Can't create a challenge that'll last fewer than one hour !"
         );
 
