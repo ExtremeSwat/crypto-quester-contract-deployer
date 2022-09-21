@@ -10,6 +10,15 @@ contract CryptoQuest_Slim {
     //platform users
     EnumerableMap.AddressToUintMap users;
 
+    // challengeOwners
+    mapping(address => mapping(uint256 => bool)) challengeOwners;
+
+    // challengeId ==> userAddress --> isParticipating
+    mapping(uint256 => mapping(address => bool)) challengeParticipants;
+
+    // challengeId ==> userAddress --> last hit checkpoint id
+    mapping(uint256 => mapping(address => uint256)) participantHitTriggers;
+
     Challenge[] public challenges;
 
     /// Sender not authorized for this
@@ -20,18 +29,12 @@ contract CryptoQuest_Slim {
 
     enum ChallengeStatus {
         Draft,
-        Published
+        Published,
+        Finished
     }
 
-    // used to signal participant's progress
-    struct ChallengeParticipantTrigger {
-        uint256 checkpointTriggerId;
-    }
-
-    // used to signal participant
-    struct ChallengeParticipant {
-        uint256 participantId;
-        ChallengeParticipantTrigger[] participantCheckpointTriggers;
+    struct ParticipantCheckpointTrigger {
+        uint256 checkpointId;
     }
 
     // used to signal a checkpoint
@@ -47,11 +50,8 @@ contract CryptoQuest_Slim {
         uint256 fromTimestamp;
         uint256 toTimestamp;
         ChallengeStatus challengeStatus;
+        ChallengeCheckpoint[] challengeCheckpoints;
         uint256 challengeCheckpointsIndex;
-        uint256 challengeParticipantsIndex;
-        mapping(uint256 => ChallengeCheckpoint) challengeCheckpoints;
-
-        mapping(address => ChallengeParticipant) challengeParticipants;
     }
 
     function createChallenge(
@@ -75,10 +75,14 @@ contract CryptoQuest_Slim {
         // to insert into table
         //title is to be concatenated with id
 
+        challengeOwners[msg.sender][newChallengeId] = true;
         return newChallengeId;
     }
 
-    function removeChallenge(uint256 challengeId) public {
+    function removeChallenge(uint256 challengeId)
+        public
+        isChallengeOwned(challengeId)
+    {
         Challenge storage challengeToRemove = challenges[challengeId];
         if (challengeToRemove.ownerAddress != msg.sender) revert Unauthorized();
         checkChallengeEditability(challengeToRemove);
@@ -97,9 +101,8 @@ contract CryptoQuest_Slim {
         string memory lng,
         bool isUserInputRequired,
         string memory userInputAnswer
-    ) public returns (uint256) {
+    ) public isChallengeOwned(challengeId) returns (uint256) {
         Challenge storage challenge = challenges[challengeId];
-        if (challenge.ownerAddress != msg.sender) revert Unauthorized();
         checkChallengeEditability(challenge);
 
         challenge.challengeCheckpointsIndex++;
@@ -112,9 +115,11 @@ contract CryptoQuest_Slim {
         return challenge.challengeCheckpointsIndex;
     }
 
-    function removeCheckpoint(uint256 challengeId, uint256 checkpointId) public {
+    function removeCheckpoint(uint256 challengeId, uint256 checkpointId)
+        public
+        isChallengeOwned(challengeId)
+    {
         Challenge storage challengeToRemove = challenges[challengeId];
-        if (challengeToRemove.ownerAddress != msg.sender) revert Unauthorized();
         checkChallengeEditability(challengeToRemove);
 
         delete challengeToRemove.challengeCheckpoints[checkpointId];
@@ -122,24 +127,77 @@ contract CryptoQuest_Slim {
         // sql statement
     }
 
-     /**
+    /**
+     * @dev Allows an owner to start his own challenge
+     *
+     * challengeId - id of the challenge [mandatory]
+     */
+    function triggerChallengeStart(uint256 challengeId) public isChallengeOwned(challengeId)
+    {
+        Challenge storage challengeToStart = challenges[challengeId];
+        checkChallengeEditability(challengeToStart);
+
+        challengeToStart.challengeStatus = ChallengeStatus.Published;
+
+        // sql update
+    }
+
+    function participantProgressTrigger(uint256 challengeId, uint256 challengeCheckpointId, uint256 checkpointId) public isParticipatingInChallenge(challengeId)
+    {
+        Challenge storage challenge = challenges[challengeId];
+        uint256 lastTriggeredCheckpointId = participantHitTriggers[challengeId][msg.sender];
+        ChallengeCheckpoint memory challengeCheckpoint = challenge.challengeCheckpoints[challengeCheckpointId];
+
+        require(challengeCheckpoint.order > lastTriggeredCheckpointId && challengeCheckpoint.order - lastTriggeredCheckpointId == 1);
+        
+        participantHitTriggers[challengeId][msg.sender] = ++lastTriggeredCheckpointId;
+
+        // evnt to signal progress
+        
+        // SQL updates 
+        if(lastTriggeredCheckpointId == challenge.challengeCheckpoints.length) {
+            challenge.challengeStatus = ChallengeStatus.Finished;
+        }
+    }   
+
+    /**
      * @dev Allows a user to participate in a challenge
      *
      * challengeId - id of the challenge [mandatory]
-    */
+     */
 
-    function participateInChallenge(uint256 challengeId) public
-    {
+    function participateInChallenge(uint256 challengeId) public {
         Challenge storage challengeToParticipateIn = challenges[challengeId];
         checkChallengeEditability(challengeToParticipateIn);
-       
-        // hasn't participated yet
-        require(challengeToParticipateIn.challengeParticipants[msg.sender].participantId == 0);
 
-        // challengeToParticipateIn.challengeParticipants[msg.sender] = ChallengeParticipant(++challengeToParticipateIn.challengeParticipantsIndex, );
+        // hasn't participated yet
+        require(!challengeParticipants[challengeId][msg.sender]);
+
+        //add and save to sql
+        challengeParticipants[challengeId][msg.sender] = true;
     }
 
-    function checkChallengeEditability(Challenge storage challenge) private {
+    function abandonChallenge(uint256 challengeId) public {
+        Challenge storage challengeToParticipateIn = challenges[challengeId];
+        checkChallengeEditability(challengeToParticipateIn);
+
+        require(challengeParticipants[challengeId][msg.sender]);
+
+        //also sql
+        delete challengeParticipants[challengeId][msg.sender];
+    }
+
+    function registerUser() public {
+        if (users.contains(msg.sender)) revert Unauthorized();
+
+        uint256 index = users.length() + 1;
+        users.set(msg.sender, index);
+
+        // once set, insert into table
+    }
+
+    //-------------------------------- privates & modifiers
+    function checkChallengeEditability(Challenge memory challenge) private {
         require(
             challenge.toTimestamp > block.timestamp,
             "Cannot alter a challenge in past !"
@@ -150,13 +208,19 @@ contract CryptoQuest_Slim {
         );
     }
 
-    function registerUser() public {
-        if (users.contains(msg.sender)) revert Unauthorized();
+    modifier isParticipatingInChallenge(uint256 challengeId) {
+        if (!challengeParticipants[challengeId][msg.sender])
+            revert Unauthorized();
 
-        uint256 index = users.length() + 1;
-        users.set(msg.sender, index);
+        _;
+    }
 
-        // once set, insert into table
+    modifier isChallengeOwned(uint256 challengeId) {
+        if (!challengeOwners[msg.sender][challengeId]) {
+            revert Unauthorized();
+        }
+
+        _;
     }
 
     modifier onlyRegisteredUsers() {
