@@ -196,16 +196,16 @@ contract CryptoQuest is CryptoQuestDeployer {
         string memory currentTimestamp = Strings.toString(block.timestamp);
 
 
-        string memory insStatement = string.concat
+         string memory insertStatement = "";
 
-        string memory insertStatement = SQLHelpers.toInsert(
-            participantProgressPrefix,
-            participantsProgressTableId,
-            'participantId, challengeCheckpointId, visitTimestamp',
-            string.concat(
-                "'", userAddress, "',", Strings.toString(challengeCheckpointId), ",", currentTimestamp
-            )
-        );
+        // string memory insertStatement = SQLHelpers.toInsert(
+        //     participantProgressPrefix,
+        //     participantsProgressTableId,
+        //     'participantId, challengeCheckpointId, visitTimestamp',
+        //     string.concat(
+        //         "'", userAddress, "',", Strings.toString(challengeCheckpointId), ",", currentTimestamp
+        //     )
+        // );
 
         _tableland.runSQL(address(this), participantsProgressTableId, insertStatement);
     }
