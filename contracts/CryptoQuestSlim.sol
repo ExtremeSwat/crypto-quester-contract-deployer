@@ -64,8 +64,8 @@ contract CryptoQuest_Slim {
         // preventing jumbled timestamps
         require(fromTimestamp < toTimestamp, "Wrong start-end range !");
 
-        Challenge storage newChallenge = challenges.push();
         uint256 newChallengeId = challenges.length + 1;
+        Challenge storage newChallenge = challenges.push();
 
         newChallenge.fromTimestamp = fromTimestamp;
         newChallenge.toTimestamp = toTimestamp;
@@ -142,6 +142,23 @@ contract CryptoQuest_Slim {
         // sql update
     }
 
+  /**
+     * @dev Allows a user to participate in a challenge
+     *
+     * challengeId - id of the challenge [mandatory]
+     */
+
+    function participateInChallenge(uint256 challengeId) public {
+        Challenge storage challengeToParticipateIn = challenges[challengeId];
+        checkChallengeEditability(challengeToParticipateIn);
+
+        // hasn't participated yet
+        require(!challengeParticipants[challengeId][msg.sender]);
+
+        //add and save to sql
+        challengeParticipants[challengeId][msg.sender] = true;
+    }
+    
     function participantProgressTrigger(uint256 challengeId, uint256 challengeCheckpointId, uint256 checkpointId) public isParticipatingInChallenge(challengeId)
     {
         Challenge storage challenge = challenges[challengeId];
@@ -160,22 +177,7 @@ contract CryptoQuest_Slim {
         }
     }   
 
-    /**
-     * @dev Allows a user to participate in a challenge
-     *
-     * challengeId - id of the challenge [mandatory]
-     */
-
-    function participateInChallenge(uint256 challengeId) public {
-        Challenge storage challengeToParticipateIn = challenges[challengeId];
-        checkChallengeEditability(challengeToParticipateIn);
-
-        // hasn't participated yet
-        require(!challengeParticipants[challengeId][msg.sender]);
-
-        //add and save to sql
-        challengeParticipants[challengeId][msg.sender] = true;
-    }
+  
 
     function abandonChallenge(uint256 challengeId) public {
         Challenge storage challengeToParticipateIn = challenges[challengeId];
@@ -199,7 +201,7 @@ contract CryptoQuest_Slim {
     //-------------------------------- privates & modifiers
     function checkChallengeEditability(Challenge memory challenge) private {
         require(
-            challenge.toTimestamp > block.timestamp,
+            challenge.toTimestamp < block.timestamp,
             "Cannot alter a challenge in past !"
         );
         require(
