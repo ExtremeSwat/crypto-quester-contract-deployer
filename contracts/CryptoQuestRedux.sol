@@ -235,9 +235,8 @@ contract CryptoQuest_Slim {
         //mark as visited
         participantHitTriggers[challengeId][msg.sender] = lastTriggeredCheckpointId;
         participantHasHitTriggers[challengeId][checkpointId] = true;
-        challenge.lastOrder = triggeredCheckpoint.order;
 
-        if(currentCheckpoint.order == challenge.lastOrder) {
+        if(triggeredCheckpoint.order == challenge.lastOrder) {
             //
             challenge.challengeStatus = ChallengeStatus.Finished;
             challenge.winnerAddress = msg.sender;
