@@ -54,7 +54,7 @@ contract CryptoQuestDeployer is Ownable, ERC721Holder {
             address(this),
             SQLHelpers.toCreateFromSchema(
                 usersPrefix,
-                "userAddress text not null primary key, nickName text not null, registeredDate integer not null, winnerAddress text, unique(userAddress, nickName)"
+                "userAddress text not null primary key, nickName text not null, registeredDate integer not null, unique(userAddress, nickName)"
             )
         );
 
@@ -62,7 +62,7 @@ contract CryptoQuestDeployer is Ownable, ERC721Holder {
             address(this),
             SQLHelpers.toCreateFromSchema(
                 challengesPrefix,
-                "id integer primary key NOT NULL,title text not null unique,description text not null,fromTimestamp integer not null,toTimestamp integer not null,triggerTimestamp integer, userAddress text not null,creationTimestamp integer not null,mapSkinId integer not null, challengeStatus integer not null, unique(title)"
+                "id integer primary key NOT NULL,title text not null unique,description text not null,fromTimestamp integer not null,toTimestamp integer not null,triggerTimestamp integer, userAddress text not null,creationTimestamp integer not null,mapSkinId integer not null, challengeStatus integer not null, winnerAddress text, unique(title)"
             )
         );
 
@@ -70,7 +70,7 @@ contract CryptoQuestDeployer is Ownable, ERC721Holder {
             address(this),
             SQLHelpers.toCreateFromSchema(
                 challengeCheckpointsPrefix,
-                "id integer primary key not null, challengeId integer not null, ordering integer not null, title text not null, iconUrl text unique not null, lat real not null, lng real not null, creationTimestamp integer not null"
+                "id integer primary key not null, challengeId integer not null, ordering integer not null, title text not null, iconUrl text unique not null, lat real not null, lng real not null, creationTimestamp integer not null, isUserInputRequired integer, userInputAnswer text"
             )
         );
 

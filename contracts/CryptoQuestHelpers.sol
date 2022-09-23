@@ -1,13 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.17;
 
-import "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
-
 contract CryptoQuestHelpers {
-
-    // Add the library methods
-    using EnumerableMap for EnumerableMap.AddressToUintMap;
-
     /// Sender not authorized for this
     /// operation.
     error Unauthorized();
@@ -54,13 +48,13 @@ contract CryptoQuestHelpers {
 
     // challengeId ==> challengeCheckpointId --> completed
     mapping(uint256 => mapping(uint256 => bool)) participantHasHitTriggers;
-    
-    //platform users
-    EnumerableMap.AddressToUintMap users;
+
+    // users
+    mapping(address => bool) users;
 
     Challenge[] public challenges;
 
-    function checkChallengeIsOwnedBySender(Challenge memory challenge) internal {
+    function checkChallengeIsOwnedBySender(Challenge memory challenge) internal view {
         if (challenge.ownerAddress != msg.sender) revert Unauthorized();
     }
 
@@ -80,7 +74,7 @@ contract CryptoQuestHelpers {
     }
 
     modifier onlyRegisteredUsers() {
-        if (!users.contains(msg.sender)) revert Unauthorized();
+        if (!users[msg.sender]) revert Unauthorized();
 
         _;
     }
