@@ -25,7 +25,7 @@ contract CryptoQuest is CryptoQuestDeployer {
         string memory iconUrl,
         string memory lat,
         string memory lng
-    ) public payable validChallengeId(challengeId) {
+    ) external payable validChallengeId(challengeId) {
         string memory insertStatement = SQLHelpers.toInsert(
             challengeCheckpointsPrefix,
             challengeCheckpointsTableId,
@@ -61,7 +61,7 @@ contract CryptoQuest is CryptoQuestDeployer {
      * title - checkpointId
      *
      */
-    function removeCheckpoint(uint256 checkpointId) public payable {
+    function removeCheckpoint(uint256 checkpointId) external payable {
         string memory checkpointIdStr = Strings.toString(checkpointId);
 
         string memory deleteCheckpointStatement = string.concat(
@@ -91,7 +91,7 @@ contract CryptoQuest is CryptoQuestDeployer {
         uint256 fromTimestamp,
         uint256 toTimestamp,
         uint256 mapSkinId
-    ) public payable {
+    ) external payable {
         // preventing jumbled timestamps
         require(fromTimestamp < toTimestamp, "Wrong start-end range !");
 
@@ -130,7 +130,7 @@ contract CryptoQuest is CryptoQuestDeployer {
     */
 
     function participateInChallenge(uint256 challengeId)
-        public
+        external
         payable
         validChallengeId(challengeId)
     {
@@ -159,7 +159,7 @@ contract CryptoQuest is CryptoQuestDeployer {
      * challengeId - id of the challenge [mandatory]
     */
      function triggerChallengeStart(uint256 challengeId)
-        public
+        external
         payable
         validChallengeId(challengeId)
     {
@@ -191,7 +191,7 @@ contract CryptoQuest is CryptoQuestDeployer {
         _tableland.runSQL(address(this), challengesTableId,  updateStatement);
     }
 
-    function participantProgressCheckIn(uint256 challengeCheckpointId) public payable  {
+    function participantProgressCheckIn(uint256 challengeCheckpointId) external payable  {
         string memory userAddress = Strings.toHexString(uint256(uint160(msg.sender)), 20);
         string memory currentTimestamp = Strings.toString(block.timestamp);
 
