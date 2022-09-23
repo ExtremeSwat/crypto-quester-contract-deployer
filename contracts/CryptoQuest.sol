@@ -229,7 +229,7 @@ contract CryptoQuest is CryptoQuestDeployer {
         string memory insertStatement = SQLHelpers.toInsert(
             participantProgressPrefix,
             participantsProgressTableId,
-            'participantId, challengeCheckpointId, visitTimestamp',
+            'userAddress, challengeCheckpointId, visitTimestamp',
             string.concat(
                 "'", userAddress, "',", Strings.toString(challengeCheckpointId), ",", Strings.toString(block.timestamp)
             )
