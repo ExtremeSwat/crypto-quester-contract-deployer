@@ -2,7 +2,6 @@
 pragma solidity ^0.8.17;
 
 import "./CryptoQuestHelpers.sol";
-import "./CryptoQuest.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 /*
