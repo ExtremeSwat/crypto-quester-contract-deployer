@@ -8,8 +8,25 @@ import { ethers } from "hardhat";
 //   await sqlHelpers.deployed();
 // }
 
-// main contract deploy
+// cryptoQuestDeploy contract deploy
 async function main() {
+  // db entities
+  //await cryptoQuestDeploy();
+
+  //main contract
+  await cryptoQuestReduxDeploy();
+}
+
+async function cryptoQuestReduxDeploy() {
+  const cryptoQuestReduxFactory = await ethers.getContractFactory("CryptoQuestRedux", {
+
+  });
+
+  const cryptoQuestRedux = await cryptoQuestReduxFactory.deploy();
+  await cryptoQuestRedux.deployed();
+}
+
+async function cryptoQuestDeploy() {
   const cryptoQuestFactory = await ethers.getContractFactory("CryptoQuest", {
     libraries: {
       SQLHelpers: '0x4eAb2af45639A53Ae1D9d28b1Ee3E43b108C8608'

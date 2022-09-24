@@ -289,7 +289,7 @@ contract CryptoQuestRedux is Ownable, CryptoQuestHelpers {
     //-------------------------------- privates & modifiers
     function checkChallengeEditability(Challenge memory challenge) private view {
         require(
-            challenge.toTimestamp < block.timestamp,
+            challenge.toTimestamp > block.timestamp,
             "Cannot alter a challenge in past !"
         );
         require(
