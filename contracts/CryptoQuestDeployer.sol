@@ -153,6 +153,16 @@ contract CryptoQuestDeployer is Ownable, ERC721Holder {
         return tableName;
     }
 
+    function cleanupTables() onlyOwner external {
+        _tableland.runSQL(address(this),usersTableId,string.concat('delete from ', getUsersTableName()));
+        _tableland.runSQL(address(this),challengesTableId,string.concat('delete from ', getChallengesTableName()));
+        _tableland.runSQL(address(this),participantsTableId,string.concat('delete from ', getParticipantsTableName()));
+        _tableland.runSQL(address(this),challengeCheckpointsTableId,string.concat('delete from ', getChallengeCheckpointsTableName()));
+        _tableland.runSQL(address(this),participantsProgressTableId,string.concat('delete from ', getParticipantProgressTableName()));
+        _tableland.runSQL(address(this),mapSkinsTableId,string.concat('delete from ', getMapSkinsTableName()));
+        _tableland.runSQL(address(this),challengeCheckpointTriggersTableId,string.concat('delete from ', getCheckpointTriggersTableName()));
+    }
+
     receive() external payable {}
 
     fallback() external payable {}
@@ -208,51 +218,4 @@ contract CryptoQuestDeployer is Ownable, ERC721Holder {
     function getMapSkinsTableName() internal view returns (string memory) {
         return SQLHelpers.toNameFromId(mapSkinsPrefix, mapSkinsTableId);
     }
-
-    //00000000000000000000 debug
-
-    // function getmapSkins() public view returns (string memory) {
-    //     return SQLHelpers.toCreateFromSchema(
-    //     mapSkinsPrefix,
-    //     "id integer primary key not null, skinName text not null, imagePreviewUrl text not null, mapUri text not null, unique(mapUri), unique(skinName)"
-    // );
-    // }
-    // function getusers() public view returns (string memory) {
-    //     return SQLHelpers.toCreateFromSchema(
-    //     usersPrefix,
-    //     "userAddress text not null primary key, nickName text not null, registeredDate integer not null, unique(userAddress, nickName)"
-    // );
-    // }
-    // function getchallenges() public view returns (string memory) {
-    //     return SQLHelpers.toCreateFromSchema(
-    //     challengesPrefix,
-    //     "id integer primary key NOT NULL,title text not null unique,description text not null,fromTimestamp integer not null,toTimestamp integer not null,triggerTimestamp integer,userAddress text not null,creationTimestamp integer not null,mapSkinId integer not null, challengeStatus integer not null, unique(title)"
-    // );
-    // }
-    // function getchallengeCheckpoints() public view returns (string memory) {
-    //     return SQLHelpers.toCreateFromSchema(
-    //     challengeCheckpointsPrefix,
-    //     "id integer primary key not null, challengeId integer not null, ordering integer not null, title text not null, iconUrl text unique not null, lat real not null, lng real not null, creationTimestamp integer not null"
-    // );
-    // }
-    // function getchallengeCheckpointTrigger() public view returns (string memory) {
-    //     return SQLHelpers.toCreateFromSchema(
-    //     challengeCheckpointTriggerPrefix,
-    //     "id integer primary key not null, checkpointId integer not null, title text not null, imageUrl text not null, isPhotoRequired integer null, photoDescription text null, isUserInputRequired integer not null, userInputDescription text null, userInputAnswer text null"
-    // );
-    // }
-    // function getparticipants() public view returns (string memory) {
-    //     return SQLHelpers.toCreateFromSchema(
-    //     participantsPrefix,
-    //     "id integer primary key not null, userAddress text not null, joinTimestamp integer not null, challengeId integer not null, unique(userAddress, challengeId)"
-    // );
-    // }
-    // function getparticipantProgress() public view returns (string memory) {
-    //     return SQLHelpers.toCreateFromSchema(
-    //     participantProgressPrefix,
-    //     "id integer primary key not null, participantId integer not null, challengeCheckpointId integer not null, visitTimestamp integer not null, unique(participantId, challengeCheckpointId)"
-    // );
-    // }
-
-    //00000000000000000000
 }
