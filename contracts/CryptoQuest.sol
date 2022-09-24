@@ -285,6 +285,7 @@ contract CryptoQuest is CryptoQuestDeployer {
 
     function getUintInQuotes(uint256 value, bool attachComma)
         private
+        pure
         returns (string memory)
     {
         string memory toRet = string.concat(Strings.toString(value));
@@ -297,6 +298,7 @@ contract CryptoQuest is CryptoQuestDeployer {
 
     function getStringInQuotes(string memory value, bool attachComma)
         private
+        pure
         returns (string memory)
     {
         string memory toRet = string.concat("'", value, "'");
