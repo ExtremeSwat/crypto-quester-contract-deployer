@@ -11,10 +11,10 @@ import { ethers } from "hardhat";
 // cryptoQuestDeploy contract deploy
 async function main() {
   // db entities
-  //await cryptoQuestDeploy();
+  await cryptoQuestDeploy();
 
   //main contract
-  await cryptoQuestReduxDeploy();
+  //await cryptoQuestReduxDeploy();
 }
 
 async function cryptoQuestReduxDeploy() {

@@ -28,7 +28,7 @@ contract CryptoQuest is CryptoQuestDeployer {
         string memory lng,
         uint8 isUserInputRequired,
         string memory userInputAnswer
-    ) external payable validChallengeId(challengeId) {
+    ) external payable {
 
         // stack too deep :/
         string memory values = string.concat(
@@ -159,7 +159,6 @@ contract CryptoQuest is CryptoQuestDeployer {
     function participateInChallenge(uint256 challengeId, address participantAddress)
         external
         payable
-        validChallengeId(challengeId)
     {
         string memory insertStatement = SQLHelpers.toInsert
                 (
@@ -188,7 +187,6 @@ contract CryptoQuest is CryptoQuestDeployer {
      function triggerChallengeStart(uint256 challengeId, address ownerAddress)
         external
         payable
-        validChallengeId(challengeId)
     {
         string memory filter = string.concat(
                 "id=",
@@ -259,15 +257,4 @@ contract CryptoQuest is CryptoQuestDeployer {
             20
         );
     }
-
-    // ------------------------------------------ PRIVATE METHODS ------------------------------------------------
-
-    // ------------------------------------------ Modifiers ------------------------------------------------
-
-    modifier validChallengeId(uint256 _challengeId) {
-        require(_challengeId > 0, "invalid challenge id");
-        _;
-    }
-
-    // ------------------------------------------ Modifiers ------------------------------------------------
 }
