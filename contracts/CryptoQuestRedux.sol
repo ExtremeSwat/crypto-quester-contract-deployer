@@ -125,8 +125,7 @@ contract CryptoQuestRedux is Ownable, CryptoQuestHelpers {
         );
         challenge.lastCheckpointId = challengeCheckpointId;
         challenge.lastOrder = order;
-        ++challengeCheckpointId;
-
+        
         uint8 userInputAnswerInt;
         if(isUserInputRequired) {
             userInputAnswerInt = 1;
@@ -135,6 +134,8 @@ contract CryptoQuestRedux is Ownable, CryptoQuestHelpers {
         }
 
         cryptoQuestInterface.createCheckpoint(challengeCheckpointId, challengeId, order, title, iconUrl, lat, lng, userInputAnswerInt, userInputAnswer);
+
+        ++challengeCheckpointId;
         
         //sql fantasy then return
         return challengeCheckpointId - 1;
