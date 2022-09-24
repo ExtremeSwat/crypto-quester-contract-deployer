@@ -24,6 +24,7 @@ contract CryptoQuest is CryptoQuestDeployer {
         uint256 ordering,
         string memory title,
         string memory iconUrl,
+        uint256 iconId,
         string memory lat,
         string memory lng,
         uint8 isUserInputRequired,
@@ -41,7 +42,8 @@ contract CryptoQuest is CryptoQuestDeployer {
                     getUintInQuotes(challengeId, true),
                     getUintInQuotes(ordering, true),
                     getStringInQuotes(title, true),
-                    getStringInQuotes(iconUrl, true)
+                    getStringInQuotes(iconUrl, true),
+                    getUintInQuotes(iconId, true)
                 ),
                 string.concat(
                     getStringInQuotes(lat, true),
