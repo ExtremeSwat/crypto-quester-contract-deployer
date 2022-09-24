@@ -9,7 +9,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 */
 interface CryptoQuestInterface {
     function createCheckpoint(
-       uint256 checkpointId,
+        uint256 checkpointId,
         uint256 challengeId,
         uint256 ordering,
         string memory title,
@@ -32,13 +32,33 @@ interface CryptoQuestInterface {
         address owner
     ) external payable;
 
-    function participateInChallenge(uint256 challengeId, address participantAddress) external payable;
+    function participateInChallenge(
+        uint256 challengeId,
+        address participantAddress
+    ) external payable;
 
-    function triggerChallengeStart(uint256 challengeId, address ownerAddress) external payable;
-    function participantProgressCheckIn(uint256 challengeCheckpointId, address participantAddress) external payable;
-    function createNewUser(address userAddress, string memory nickName) external payable;
-    function archiveChallenge(uint256 challengeId, uint256 archiveEnum) external payable;
-    function setChallengeWinner(uint256 challengeId, address challengeWinner, uint256 challengeStatus) external payable;
+    function triggerChallengeStart(uint256 challengeId, address ownerAddress)
+        external
+        payable;
+
+    function participantProgressCheckIn(
+        uint256 challengeCheckpointId,
+        address participantAddress
+    ) external payable;
+
+    function createNewUser(address userAddress, string memory nickName)
+        external
+        payable;
+
+    function archiveChallenge(uint256 challengeId, uint256 archiveEnum)
+        external
+        payable;
+
+    function setChallengeWinner(
+        uint256 challengeId,
+        address challengeWinner,
+        uint256 challengeStatus
+    ) external payable;
 }
 
 contract CryptoQuestRedux is Ownable, CryptoQuestHelpers {
@@ -46,7 +66,7 @@ contract CryptoQuestRedux is Ownable, CryptoQuestHelpers {
     uint256 challengeCheckpointId;
     CryptoQuestInterface cryptoQuestInterface;
 
-    function setCryptoQuestAddress(address _address) external onlyOwner{
+    function setCryptoQuestAddress(address _address) external onlyOwner {
         cryptoQuestInterface = CryptoQuestInterface(_address);
     }
 
@@ -67,7 +87,15 @@ contract CryptoQuestRedux is Ownable, CryptoQuestHelpers {
         newChallenge.toTimestamp = toTimestamp;
         newChallenge.ownerAddress = msg.sender;
 
-        cryptoQuestInterface.createChallenge(challengeCurrentId, title, description, fromTimestamp, toTimestamp, mapSkinId, msg.sender);
+        cryptoQuestInterface.createChallenge(
+            challengeCurrentId,
+            title,
+            description,
+            fromTimestamp,
+            toTimestamp,
+            mapSkinId,
+            msg.sender
+        );
 
         challengeOwners[msg.sender][challengeCurrentId] = true;
         challengeCurrentId++;
@@ -84,7 +112,10 @@ contract CryptoQuestRedux is Ownable, CryptoQuestHelpers {
         challenge.challengeStatus = ChallengeStatus.Archived;
 
         //sql fantasy
-        cryptoQuestInterface.archiveChallenge(challengeId, uint256(ChallengeStatus.Archived));
+        cryptoQuestInterface.archiveChallenge(
+            challengeId,
+            uint256(ChallengeStatus.Archived)
+        );
     }
 
     function createCheckpoint(
@@ -125,18 +156,28 @@ contract CryptoQuestRedux is Ownable, CryptoQuestHelpers {
         );
         challenge.lastCheckpointId = challengeCheckpointId;
         challenge.lastOrder = order;
-        
+
         uint8 userInputAnswerInt;
-        if(isUserInputRequired) {
+        if (isUserInputRequired) {
             userInputAnswerInt = 1;
         } else {
             userInputAnswerInt = 0;
         }
 
-        cryptoQuestInterface.createCheckpoint(challengeCheckpointId, challengeId, order, title, iconUrl, lat, lng, userInputAnswerInt, userInputAnswer);
+        cryptoQuestInterface.createCheckpoint(
+            challengeCheckpointId,
+            challengeId,
+            order,
+            title,
+            iconUrl,
+            lat,
+            lng,
+            userInputAnswerInt,
+            userInputAnswer
+        );
 
         ++challengeCheckpointId;
-        
+
         //sql fantasy then return
         return challengeCheckpointId - 1;
     }
@@ -169,7 +210,7 @@ contract CryptoQuestRedux is Ownable, CryptoQuestHelpers {
         if (foundIndex > 0) {
             challenge.lastCheckpointId -= 1;
         }
-        
+
         cryptoQuestInterface.removeCheckpoint(checkpointId);
     }
 
@@ -270,17 +311,23 @@ contract CryptoQuestRedux is Ownable, CryptoQuestHelpers {
             challenge.winnerAddress = msg.sender;
 
             // SQL update
-            cryptoQuestInterface.setChallengeWinner(challengeId, msg.sender, uint(ChallengeStatus.Finished));
+            cryptoQuestInterface.setChallengeWinner(
+                challengeId,
+                msg.sender,
+                uint(ChallengeStatus.Finished)
+            );
         } else {
-            // evnt to signal progress
-            // SQL update
-            cryptoQuestInterface.participantProgressCheckIn(checkpointId, msg.sender);
+       
         }
+
+        cryptoQuestInterface.participantProgressCheckIn(
+            checkpointId,
+            msg.sender
+        );
     }
 
     function createNewUser(string memory nickName) external payable {
-        if(users[msg.sender])
-            revert Unauthorized();
+        if (users[msg.sender]) revert Unauthorized();
 
         users[msg.sender] = true;
 
@@ -288,7 +335,10 @@ contract CryptoQuestRedux is Ownable, CryptoQuestHelpers {
     }
 
     //-------------------------------- privates & modifiers
-    function checkChallengeEditability(Challenge memory challenge) private view {
+    function checkChallengeEditability(Challenge memory challenge)
+        private
+        view
+    {
         require(
             challenge.toTimestamp > block.timestamp,
             "Cannot alter a challenge in past !"
@@ -299,7 +349,7 @@ contract CryptoQuestRedux is Ownable, CryptoQuestHelpers {
         );
     }
 
-    function getCheckpointByCheckpointId (
+    function getCheckpointByCheckpointId(
         uint256 checkpointId,
         ChallengeCheckpoint[] memory checkpoints
     ) private pure returns (ChallengeCheckpoint memory) {
