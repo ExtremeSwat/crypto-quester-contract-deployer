@@ -29,7 +29,8 @@ interface CryptoQuestInterface {
         uint256 fromTimestamp,
         uint256 toTimestamp,
         uint256 mapSkinId,
-        address owner
+        address owner,
+        string memory imagePreviewURL
     ) external payable;
 
     function participateInChallenge(
@@ -75,7 +76,8 @@ contract CryptoQuestRedux is Ownable, CryptoQuestHelpers {
         string memory description,
         uint256 fromTimestamp,
         uint256 toTimestamp,
-        uint256 mapSkinId
+        uint256 mapSkinId,
+        string memory imagePreviewURL
     ) external returns (uint256) {
         // preventing jumbled timestamps
         require(fromTimestamp < toTimestamp, "Wrong start-end range !");
@@ -94,7 +96,8 @@ contract CryptoQuestRedux is Ownable, CryptoQuestHelpers {
             fromTimestamp,
             toTimestamp,
             mapSkinId,
-            msg.sender
+            msg.sender,
+            imagePreviewURL
         );
 
         challengeOwners[msg.sender][challengeCurrentId] = true;
@@ -316,8 +319,6 @@ contract CryptoQuestRedux is Ownable, CryptoQuestHelpers {
                 msg.sender,
                 uint(ChallengeStatus.Finished)
             );
-        } else {
-       
         }
 
         cryptoQuestInterface.participantProgressCheckIn(

@@ -111,7 +111,8 @@ contract CryptoQuest is CryptoQuestDeployer {
         uint256 fromTimestamp,
         uint256 toTimestamp,
         uint256 mapSkinId,
-        address owner
+        address owner,
+        string memory imagePreviewURL
     ) external payable {
         // preventing jumbled timestamps
         require(fromTimestamp < toTimestamp, "Wrong start-end range !");
@@ -119,7 +120,7 @@ contract CryptoQuest is CryptoQuestDeployer {
         string memory insertStatement = SQLHelpers.toInsert(
             challengesPrefix,
             challengesTableId,
-            "id,title,description,fromTimestamp,toTimestamp,userAddress,creationTimestamp,mapSkinId,challengeStatus",
+            "id,title,description,fromTimestamp,toTimestamp,userAddress,creationTimestamp,mapSkinId,challengeStatus,imagePreviewURL",
             string.concat(
                 Strings.toString(id),
                 ",'",
@@ -137,7 +138,10 @@ contract CryptoQuest is CryptoQuestDeployer {
                 ",",
                 Strings.toString(mapSkinId),
                 ",",
-                Strings.toString(0)
+                Strings.toString(0),
+                ",'",
+                imagePreviewURL,
+                "'"
             )
         );
 
