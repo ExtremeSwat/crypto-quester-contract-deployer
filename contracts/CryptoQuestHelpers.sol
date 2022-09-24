@@ -21,9 +21,10 @@ contract CryptoQuestHelpers {
     struct ChallengeCheckpoint {
         uint256 checkpointId;
         uint256 order;
-        bool isUserInputRequired;
-        string userInputAnswer;
         bool exists;
+
+        uint256 checkpointTriggerId;
+        bool checkpointTriggerExists;
     }
 
     struct Challenge {

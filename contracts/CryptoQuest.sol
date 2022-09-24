@@ -26,16 +26,12 @@ contract CryptoQuest is CryptoQuestDeployer {
         string memory iconUrl,
         uint256 iconId,
         string memory lat,
-        string memory lng,
-        uint8 isUserInputRequired,
-        string memory userInputAnswer
+        string memory lng
     ) external payable {
-        // stack too deep :/
-
         string memory insertStatement = SQLHelpers.toInsert(
             challengeCheckpointsPrefix,
             challengeCheckpointsTableId,
-            "id, challengeId, ordering, title, iconUrl, lat, lng, creationTimestamp, isUserInputRequired, userInputAnswer",
+            "id, challengeId, ordering, title, iconUrl, lat, lng, creationTimestamp",
             string.concat(
                 string.concat(
                     getUintInQuotes(checkpointId, true),
@@ -48,9 +44,7 @@ contract CryptoQuest is CryptoQuestDeployer {
                 string.concat(
                     getStringInQuotes(lat, true),
                     getStringInQuotes(lng, true),
-                    getUintInQuotes(block.timestamp, true),
-                    getUintInQuotes(isUserInputRequired, true),
-                    getStringInQuotes(userInputAnswer, false)
+                    getUintInQuotes(block.timestamp, false)
                 )
             )
         );
@@ -59,6 +53,58 @@ contract CryptoQuest is CryptoQuestDeployer {
             address(this),
             challengeCheckpointsTableId,
             insertStatement
+        );
+    }
+
+    function createCheckpointTrigger(
+        uint256 challengeCheckpointId,
+        uint256 checkpointId,
+        string memory title,
+        string memory imageUrl,
+        uint8 isPhotoRequired,
+        string memory photoDescription,
+        uint8 isUserInputRequired,
+        string memory userInputDescription,
+        string memory userInputAnswer
+    ) external payable {
+        string memory insertStatement = SQLHelpers.toInsert(
+            challengeCheckpointsPrefix,
+            challengeCheckpointsTableId,
+            "id,checkpointId,title,imageUrl,isPhotoRequired,photoDescription,isUserInputRequired,userInputDescription,userInputAnswer",
+            string.concat(
+                getUintInQuotes(challengeCheckpointId, true),
+                getUintInQuotes(checkpointId, true),
+                getStringInQuotes(title, true),
+                getStringInQuotes(imageUrl, true),
+                getUintInQuotes(isPhotoRequired, true),
+                getStringInQuotes(photoDescription, true),
+                getUintInQuotes(isUserInputRequired, true),
+                getStringInQuotes(userInputDescription, true),
+                getStringInQuotes(userInputAnswer, false)
+            )
+        );
+
+        _tableland.runSQL(
+            address(this),
+            challengeCheckpointsTableId,
+            insertStatement
+        );
+    }
+
+    function removeCheckpointTrigger(uint256 challengeCheckpointId)
+        external
+        payable
+    {
+        string memory deleteStatement = SQLHelpers.toDelete(
+            challengeCheckpointsPrefix,
+            challengeCheckpointsTableId,
+            string.concat("id=", Strings.toString(challengeCheckpointId))
+        );
+
+        _tableland.runSQL(
+            address(this),
+            challengeCheckpointId,
+            deleteStatement
         );
     }
 
