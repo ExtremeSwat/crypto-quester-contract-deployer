@@ -54,7 +54,7 @@ contract CryptoQuestDeployer is Ownable, ERC721Holder {
             address(this),
             SQLHelpers.toCreateFromSchema(
                 usersPrefix,
-                "userAddress text not null primary key, nickName text not null, registeredDate integer not null, unique(userAddress, nickName)"
+                "userAddress text not null primary key, nickName text not null, registeredDate integer not null, unique(nickName)"
             )
         );
 
