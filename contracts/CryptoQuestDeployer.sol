@@ -153,69 +153,7 @@ contract CryptoQuestDeployer is Ownable, ERC721Holder {
         return tableName;
     }
 
-    function cleanupTables() onlyOwner external {
-        _tableland.runSQL(address(this),usersTableId,string.concat('delete from ', getUsersTableName()));
-        _tableland.runSQL(address(this),challengesTableId,string.concat('delete from ', getChallengesTableName()));
-        _tableland.runSQL(address(this),participantsTableId,string.concat('delete from ', getParticipantsTableName()));
-        _tableland.runSQL(address(this),challengeCheckpointsTableId,string.concat('delete from ', getChallengeCheckpointsTableName()));
-        _tableland.runSQL(address(this),participantsProgressTableId,string.concat('delete from ', getParticipantProgressTableName()));
-        _tableland.runSQL(address(this),mapSkinsTableId,string.concat('delete from ', getMapSkinsTableName()));
-        _tableland.runSQL(address(this),challengeCheckpointTriggersTableId,string.concat('delete from ', getCheckpointTriggersTableName()));
-    }
-
     receive() external payable {}
 
     fallback() external payable {}
-
-    function getCheckpointTriggersTableName()
-        internal
-        view
-        returns (string memory)
-    {
-        return
-            SQLHelpers.toNameFromId(
-                challengeCheckpointTriggerPrefix,
-                challengeCheckpointTriggersTableId
-            );
-    }
-
-    function getUsersTableName() internal view returns (string memory) {
-        return SQLHelpers.toNameFromId(usersPrefix, usersTableId);
-    }
-
-    function getChallengesTableName() internal view returns (string memory) {
-        return SQLHelpers.toNameFromId(challengesPrefix, challengesTableId);
-    }
-
-    function getParticipantsTableName() internal view returns (string memory) {
-        return SQLHelpers.toNameFromId(participantsPrefix, participantsTableId);
-    }
-
-    function getChallengeCheckpointsTableName()
-        internal
-        view
-        returns (string memory)
-    {
-        return
-            SQLHelpers.toNameFromId(
-                challengeCheckpointsPrefix,
-                challengeCheckpointsTableId
-            );
-    }
-
-    function getParticipantProgressTableName()
-        internal
-        view
-        returns (string memory)
-    {
-        return
-            SQLHelpers.toNameFromId(
-                participantProgressPrefix,
-                participantsProgressTableId
-            );
-    }
-
-    function getMapSkinsTableName() internal view returns (string memory) {
-        return SQLHelpers.toNameFromId(mapSkinsPrefix, mapSkinsTableId);
-    }
 }

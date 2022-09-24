@@ -53,7 +53,7 @@ interface CryptoQuestInterface {
         address participantAddress
     ) external payable;
 
-    function triggerChallengeStart(uint256 challengeId, address ownerAddress)
+    function triggerChallengeStart(uint256 challengeId, uint256 challengeStatus)
         external
         payable;
 
@@ -286,7 +286,7 @@ contract CryptoQuestRedux is Ownable, CryptoQuestHelpers {
         challengeToStart.challengeStatus = ChallengeStatus.Published;
 
         // sql update
-        cryptoQuestInterface.triggerChallengeStart(challengeId, msg.sender);
+        cryptoQuestInterface.triggerChallengeStart(challengeId, uint(ChallengeStatus.Published));
     }
 
     /**

@@ -3,15 +3,7 @@ pragma solidity ^0.8.17;
 
 import "./CryptoQuestDeployer.sol";
 
-// todo: re-entrancy attack prevention
-// toDo: stop spamming STrings.bs this will cause extra gas units, just extract them to the upper lines of the function into memory vars, cheaper and cleanier
-// todo: remove simple acl on address and just insert it
 contract CryptoQuest is CryptoQuestDeployer {
-    // Creation Events
-    event ChallengeCreated(address indexed _userAddress, string title);
-    event ParticipantJoined(address indexed _userAddress, uint256 challengeId);
-    event CheckpointCreated(address indexed _userAddress, string title);
-
     constructor(address registry) CryptoQuestDeployer(registry) {}
 
     /**
@@ -28,31 +20,27 @@ contract CryptoQuest is CryptoQuestDeployer {
         string memory lat,
         string memory lng
     ) external payable {
-        string memory insertStatement = SQLHelpers.toInsert(
-            challengeCheckpointsPrefix,
-            challengeCheckpointsTableId,
-            "id, challengeId, ordering, title, iconUrl, lat, lng, creationTimestamp",
-            string.concat(
-                string.concat(
-                    getUintInQuotes(checkpointId, true),
-                    getUintInQuotes(challengeId, true),
-                    getUintInQuotes(ordering, true),
-                    getStringInQuotes(title, true),
-                    getStringInQuotes(iconUrl, true),
-                    getUintInQuotes(iconId, true)
-                ),
-                string.concat(
-                    getStringInQuotes(lat, true),
-                    getStringInQuotes(lng, true),
-                    getUintInQuotes(block.timestamp, false)
-                )
-            )
+        string memory values = string.concat(
+            getUintInQuotes(checkpointId, true),
+            getUintInQuotes(challengeId, true),
+            getUintInQuotes(ordering, true),
+            getStringInQuotes(title, true),
+            getStringInQuotes(iconUrl, true),
+            getUintInQuotes(iconId, true),
+            getStringInQuotes(lat, true),
+            getStringInQuotes(lng, true),
+            getUintInQuotes(block.timestamp, false)
         );
 
         _tableland.runSQL(
             address(this),
             challengeCheckpointsTableId,
-            insertStatement
+            SQLHelpers.toInsert(
+                challengeCheckpointsPrefix,
+                challengeCheckpointsTableId,
+                "id, challengeId, ordering, title, iconUrl, lat, lng, creationTimestamp",
+                values
+            )
         );
     }
 
@@ -67,27 +55,27 @@ contract CryptoQuest is CryptoQuestDeployer {
         string memory userInputDescription,
         string memory userInputAnswer
     ) external payable {
-        string memory insertStatement = SQLHelpers.toInsert(
-            challengeCheckpointsPrefix,
-            challengeCheckpointsTableId,
-            "id,checkpointId,title,imageUrl,isPhotoRequired,photoDescription,isUserInputRequired,userInputDescription,userInputAnswer",
-            string.concat(
-                getUintInQuotes(challengeCheckpointId, true),
-                getUintInQuotes(checkpointId, true),
-                getStringInQuotes(title, true),
-                getStringInQuotes(imageUrl, true),
-                getUintInQuotes(isPhotoRequired, true),
-                getStringInQuotes(photoDescription, true),
-                getUintInQuotes(isUserInputRequired, true),
-                getStringInQuotes(userInputDescription, true),
-                getStringInQuotes(userInputAnswer, false)
-            )
+        string memory values = string.concat(
+            getUintInQuotes(challengeCheckpointId, true),
+            getUintInQuotes(checkpointId, true),
+            getStringInQuotes(title, true),
+            getStringInQuotes(imageUrl, true),
+            getUintInQuotes(isPhotoRequired, true),
+            getStringInQuotes(photoDescription, true),
+            getUintInQuotes(isUserInputRequired, true),
+            getStringInQuotes(userInputDescription, true),
+            getStringInQuotes(userInputAnswer, false)
         );
 
         _tableland.runSQL(
             address(this),
             challengeCheckpointsTableId,
-            insertStatement
+            SQLHelpers.toInsert(
+                challengeCheckpointsPrefix,
+                challengeCheckpointsTableId,
+                "id,checkpointId,title,imageUrl,isPhotoRequired,photoDescription,isUserInputRequired,userInputDescription,userInputAnswer",
+                values
+            )
         );
     }
 
@@ -95,16 +83,14 @@ contract CryptoQuest is CryptoQuestDeployer {
         external
         payable
     {
-        string memory deleteStatement = SQLHelpers.toDelete(
-            challengeCheckpointsPrefix,
-            challengeCheckpointsTableId,
-            string.concat("id=", Strings.toString(challengeCheckpointId))
-        );
-
         _tableland.runSQL(
             address(this),
             challengeCheckpointId,
-            deleteStatement
+            SQLHelpers.toDelete(
+                challengeCheckpointsPrefix,
+                challengeCheckpointsTableId,
+                string.concat("id=", Strings.toString(challengeCheckpointId))
+            )
         );
     }
 
@@ -112,16 +98,14 @@ contract CryptoQuest is CryptoQuestDeployer {
      * @dev Removes a checkpoint
      */
     function removeCheckpoint(uint256 checkpointId) external payable {
-        string memory deleteCheckpointStatement = SQLHelpers.toDelete(
-            challengeCheckpointsPrefix,
-            challengeCheckpointsTableId,
-            string.concat("id = ", Strings.toString(checkpointId))
-        );
-
         _tableland.runSQL(
             address(this),
             challengeCheckpointsTableId,
-            deleteCheckpointStatement
+            SQLHelpers.toDelete(
+                challengeCheckpointsPrefix,
+                challengeCheckpointsTableId,
+                string.concat("id = ", Strings.toString(checkpointId))
+            )
         );
     }
 
@@ -129,16 +113,19 @@ contract CryptoQuest is CryptoQuestDeployer {
         external
         payable
     {
-        string memory challengeIdStr = Strings.toString(challengeId);
-        string memory archiveEnumStr = Strings.toString(archiveEnum);
-
-        string memory updateStatement = SQLHelpers.toUpdate(
-            challengesPrefix,
+        _tableland.runSQL(
+            address(this),
             challengesTableId,
-            string.concat("challengeStatus = ", archiveEnumStr),
-            string.concat("id = ", challengeIdStr)
+            SQLHelpers.toUpdate(
+                challengesPrefix,
+                challengesTableId,
+                string.concat(
+                    "challengeStatus = ",
+                    Strings.toString(archiveEnum)
+                ),
+                string.concat("id = ", Strings.toString(challengeId))
+            )
         );
-        _tableland.runSQL(address(this), challengesTableId, updateStatement);
     }
 
     /**
@@ -163,38 +150,29 @@ contract CryptoQuest is CryptoQuestDeployer {
         string memory imagePreviewURL
     ) external payable {
         // preventing jumbled timestamps
-        require(fromTimestamp < toTimestamp, "Wrong start-end range !");
-
-        string memory insertStatement = SQLHelpers.toInsert(
-            challengesPrefix,
-            challengesTableId,
-            "id,title,description,fromTimestamp,toTimestamp,userAddress,creationTimestamp,mapSkinId,challengeStatus,imagePreviewURL",
-            string.concat(
-                Strings.toString(id),
-                ",'",
-                title,
-                "','",
-                description,
-                "',",
-                Strings.toString(fromTimestamp),
-                ",",
-                Strings.toString(toTimestamp),
-                ",'",
-                getUserAddressAsString(owner),
-                "',",
-                Strings.toString(block.timestamp),
-                ",",
-                Strings.toString(mapSkinId),
-                ",",
-                Strings.toString(0),
-                ",'",
-                imagePreviewURL,
-                "'"
-            )
+        string memory values = string.concat(
+            getUintInQuotes(id, true),
+            getStringInQuotes(title, true),
+            getStringInQuotes(description, true),
+            getUintInQuotes(fromTimestamp, true),
+            getUintInQuotes(toTimestamp, true),
+            getUserAddressAsString(owner, true),
+            getUintInQuotes(block.timestamp, true),
+            getUintInQuotes(mapSkinId, true),
+            getUintInQuotes(0, true),
+            getStringInQuotes(imagePreviewURL, false)
         );
 
-        _tableland.runSQL(address(this), challengesTableId, insertStatement);
-        emit ChallengeCreated(msg.sender, title);
+        _tableland.runSQL(
+            address(this),
+            challengesTableId,
+            SQLHelpers.toInsert(
+                challengesPrefix,
+                challengesTableId,
+                "id,title,description,fromTimestamp,toTimestamp,userAddress,creationTimestamp,mapSkinId,challengeStatus,imagePreviewURL",
+                values
+            )
+        );
     }
 
     /**
@@ -212,17 +190,13 @@ contract CryptoQuest is CryptoQuestDeployer {
             participantsTableId,
             "userAddress, joinTimestamp, challengeId",
             string.concat(
-                "'",
-                getUserAddressAsString(participantAddress),
-                "',",
-                Strings.toString(block.timestamp),
-                ",",
+                getUserAddressAsString(participantAddress, true),
+                getUintInQuotes(block.timestamp, true),
                 Strings.toString(challengeId)
             )
         );
 
         _tableland.runSQL(address(this), participantsTableId, insertStatement);
-        emit ParticipantJoined(msg.sender, challengeId);
     }
 
     /**
@@ -230,29 +204,25 @@ contract CryptoQuest is CryptoQuestDeployer {
      *
      * challengeId - id of the challenge [mandatory]
      */
-    function triggerChallengeStart(uint256 challengeId, address ownerAddress)
+    function triggerChallengeStart(uint256 challengeId, uint256 challengeStatus)
         external
         payable
     {
-        string memory filter = string.concat(
-            "id=",
-            Strings.toString(challengeId),
-            // only the owner can do it
-            " and userAddress='",
-            getUserAddressAsString(ownerAddress)
-        );
-
-        string memory updateStatement = SQLHelpers.toUpdate(
-            challengesPrefix,
+        _tableland.runSQL(
+            address(this),
             challengesTableId,
-            string.concat(
-                "triggerTimestamp= ",
-                Strings.toString(block.timestamp)
-            ),
-            filter
+            SQLHelpers.toUpdate(
+                challengesPrefix,
+                challengesTableId,
+                string.concat(
+                    "triggerTimestamp= ",
+                    Strings.toString(block.timestamp),
+                    ",challengeStatus=",
+                    Strings.toString(challengeStatus)
+                ),
+                string.concat("id=", Strings.toString(challengeId))
+            )
         );
-
-        _tableland.runSQL(address(this), challengesTableId, updateStatement);
     }
 
     function setChallengeWinner(
@@ -260,47 +230,40 @@ contract CryptoQuest is CryptoQuestDeployer {
         address challengeWinner,
         uint256 challengeStatus
     ) external payable {
-        string memory userAddress = getUserAddressAsString(challengeWinner);
-        string memory updateStatement = SQLHelpers.toUpdate(
-            challengesPrefix,
+        _tableland.runSQL(
+            address(this),
             challengesTableId,
-            string.concat(
-                "challengeStatus=",
-                Strings.toString(challengeStatus),
-                ", winnerAddress='",
-                userAddress,
-                "'"
-            ),
-            string.concat("id =", Strings.toString(challengeId))
+            SQLHelpers.toUpdate(
+                challengesPrefix,
+                challengesTableId,
+                string.concat(
+                    "challengeStatus=",
+                    Strings.toString(challengeStatus),
+                    ",winnerAddress=",
+                    getUserAddressAsString(challengeWinner, false)
+                ),
+                string.concat("id =", Strings.toString(challengeId))
+            )
         );
-
-        _tableland.runSQL(address(this), challengesTableId, updateStatement);
     }
 
     function participantProgressCheckIn(
         uint256 challengeCheckpointId,
         address participantAddress
     ) external payable {
-        string memory userAddress = getUserAddressAsString(participantAddress);
-
-        string memory insertStatement = SQLHelpers.toInsert(
-            participantProgressPrefix,
-            participantsProgressTableId,
-            "userAddress, challengeCheckpointId, visitTimestamp",
-            string.concat(
-                "'",
-                userAddress,
-                "',",
-                Strings.toString(challengeCheckpointId),
-                ",",
-                Strings.toString(block.timestamp)
-            )
-        );
-
         _tableland.runSQL(
             address(this),
             participantsProgressTableId,
-            insertStatement
+            SQLHelpers.toInsert(
+                participantProgressPrefix,
+                participantsProgressTableId,
+                "userAddress, challengeCheckpointId, visitTimestamp",
+                string.concat(
+                    getUserAddressAsString(participantAddress, true),
+                    getUintInQuotes(challengeCheckpointId, true),
+                    getUintInQuotes(block.timestamp, false)
+                )
+            )
         );
     }
 
@@ -308,31 +271,40 @@ contract CryptoQuest is CryptoQuestDeployer {
         public
         payable
     {
-        string memory insertStatement = SQLHelpers.toInsert(
-            usersPrefix,
+        _tableland.runSQL(
+            address(this),
             usersTableId,
-            "userAddress, nickname, registeredDate",
-            string.concat(
-                "'",
-                getUserAddressAsString(userAddress),
-                "', '",
-                nickName,
-                "', ",
-                Strings.toString(block.timestamp)
+            SQLHelpers.toInsert(
+                usersPrefix,
+                usersTableId,
+                "userAddress, nickname, registeredDate",
+                string.concat(
+                    getUserAddressAsString(userAddress, true),
+                    getStringInQuotes(nickName, true),
+                    getUintInQuotes(block.timestamp, false)
+                )
             )
         );
-
-        _tableland.runSQL(address(this), usersTableId, insertStatement);
     }
 
     // ------------------------------------------ PRIVATE METHODS ------------------------------------------------
 
-    function getUserAddressAsString(address sender)
+    function getUserAddressAsString(address sender, bool attachComma)
         private
         pure
         returns (string memory)
     {
-        return Strings.toHexString(uint256(uint160(sender)), 20);
+        string memory toRet = string.concat(
+            "'",
+            Strings.toHexString(uint256(uint160(sender)), 20),
+            "'"
+        );
+        
+        if (attachComma) {
+            toRet = string.concat(toRet, ",");
+        }
+        
+        return toRet;
     }
 
     function getUintInQuotes(uint256 value, bool attachComma)
