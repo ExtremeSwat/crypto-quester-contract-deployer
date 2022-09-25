@@ -181,7 +181,7 @@ contract CryptoQuestRedux is Ownable, CryptoQuestHelpers {
         );
 
         ++challengeCheckpointId;
-        return challengeCheckpointId - 1;
+        return challenge.lastCheckpointId;
     }
 
     function createCheckpointTrigger(
