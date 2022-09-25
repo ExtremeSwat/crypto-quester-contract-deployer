@@ -69,10 +69,10 @@ contract CryptoQuest is CryptoQuestDeployer {
 
         _tableland.runSQL(
             address(this),
-            challengeCheckpointsTableId,
+            challengeCheckpointTriggersTableId,
             SQLHelpers.toInsert(
-                challengeCheckpointsPrefix,
-                challengeCheckpointsTableId,
+                challengeCheckpointTriggerPrefix,
+                challengeCheckpointTriggersTableId,
                 "id,checkpointId,title,imageUrl,isPhotoRequired,photoDescription,isUserInputRequired,userInputDescription,userInputAnswer",
                 values
             )
