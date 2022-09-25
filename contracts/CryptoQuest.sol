@@ -38,7 +38,7 @@ contract CryptoQuest is CryptoQuestDeployer {
             SQLHelpers.toInsert(
                 challengeCheckpointsPrefix,
                 challengeCheckpointsTableId,
-                "id, challengeId, ordering, title, iconUrl, lat, lng, creationTimestamp",
+                "id,challengeId,ordering,title,iconUrl,iconId,lat,lng,creationTimestamp",
                 values
             )
         );
