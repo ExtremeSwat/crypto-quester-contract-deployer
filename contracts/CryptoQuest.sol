@@ -45,7 +45,7 @@ contract CryptoQuest is CryptoQuestDeployer {
     }
 
     function createCheckpointTrigger(
-        uint256 challengeCheckpointId,
+        uint256 checkpointTriggerId,
         uint256 checkpointId,
         string memory title,
         string memory imageUrl,
@@ -56,7 +56,7 @@ contract CryptoQuest is CryptoQuestDeployer {
         string memory userInputAnswer
     ) external payable {
         string memory values = string.concat(
-            getUintInQuotes(challengeCheckpointId, true),
+            getUintInQuotes(checkpointTriggerId, true),
             getUintInQuotes(checkpointId, true),
             getStringInQuotes(title, true),
             getStringInQuotes(imageUrl, true),

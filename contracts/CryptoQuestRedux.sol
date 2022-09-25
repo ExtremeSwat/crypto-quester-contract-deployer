@@ -20,7 +20,7 @@ interface CryptoQuestInterface {
     ) external payable;
 
     function createCheckpointTrigger(
-        uint256 challengeCheckpointId,
+        uint256 checkpointTriggerId,
         uint256 checkpointId,
         string memory title,
         string memory imageUrl,
@@ -185,13 +185,13 @@ contract CryptoQuestRedux is Ownable, CryptoQuestHelpers {
     }
 
     function createCheckpointTrigger(
-        uint256 challengeCheckpointId,
+        uint256 challengeId,
         uint256 checkpointId,
         string memory title,
         string memory imageUrl,
-        uint8 isPhotoRequired,
+        bool isPhotoRequired,
         string memory photoDescription,
-        uint8 isUserInputRequired,
+        bool isUserInputRequired,
         string memory userInputDescription,
         string memory userInputAnswer
     ) external payable isChallengeOwned(challengeId) returns (uint256) {
@@ -220,7 +220,7 @@ contract CryptoQuestRedux is Ownable, CryptoQuestHelpers {
         // sql insert of trigger
         cryptoQuestInterface.createCheckpointTrigger(
             checkpointTriggerId,
-            challengeId,
+            checkpointId,
             title,
             imageUrl,
             isPhotoRequired ? 1 : 0,
