@@ -228,9 +228,10 @@ contract CryptoQuestRedux is Ownable, CryptoQuestHelpers {
             userInputAnswer
         );
 
+        challengeCheckpoint.checkpointTriggerId = checkpointTriggerId; 
         checkpointTriggerId++;
 
-        return challengeCheckpoint.checkpointTriggerId - 1;
+        return challengeCheckpoint.checkpointTriggerId;
     }
 
     function removeCheckpoint(uint256 challengeId, uint256 checkpointId)
