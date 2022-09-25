@@ -154,13 +154,18 @@ contract CryptoQuestRedux is Ownable, CryptoQuestHelpers {
         require(order > 0, "Ordering starts from 1 !");
 
         if (challenge.challengeCheckpoints.length > 0) {
-            require(
-                order >
-                    challenge
-                        .challengeCheckpoints[challenge.lastCheckpointId]
-                        .order,
-                "invalid ordering"
-            );
+            ChallengeCheckpoint memory lastCheckpoint;
+            for (uint i = 0; i < challenge.challengeCheckpoints.length; i++) {
+                if (
+                    challenge.challengeCheckpoints[i].checkpointId ==
+                    challenge.lastCheckpointId
+                ) {
+                    lastCheckpoint = challenge.challengeCheckpoints[i];
+                    break;
+                }
+            }
+
+            require(order > lastCheckpoint.order, "invalid ordering");
         }
 
         challenge.challengeCheckpoints.push(
@@ -199,7 +204,7 @@ contract CryptoQuestRedux is Ownable, CryptoQuestHelpers {
         checkChallengeEditability(challenge);
         checkChallengeIsOwnedBySender(challenge);
 
-        require(challenge.challengeCheckpoints.length > 0);
+        require(challenge.challengeCheckpoints.length > 0, "no challenge checkpoints attached !");
         ChallengeCheckpoint memory challengeCheckpoint;
         for (uint i = 0; i < challenge.challengeCheckpoints.length; i++) {
             challengeCheckpoint = challenge.challengeCheckpoints[i];
@@ -215,7 +220,7 @@ contract CryptoQuestRedux is Ownable, CryptoQuestHelpers {
             }
         }
 
-        require(challengeCheckpoint.exists);
+        require(challengeCheckpoint.exists, "Challenge checkpoint does not exist !");
 
         // sql insert of trigger
         cryptoQuestInterface.createCheckpointTrigger(
