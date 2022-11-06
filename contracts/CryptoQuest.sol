@@ -85,10 +85,10 @@ contract CryptoQuest is CryptoQuestDeployer {
     {
         _tableland.runSQL(
             address(this),
-            challengeCheckpointId,
+            challengeCheckpointTriggersTableId,
             SQLHelpers.toDelete(
-                challengeCheckpointsPrefix,
-                challengeCheckpointsTableId,
+                challengeCheckpointTriggerPrefix,
+                challengeCheckpointTriggersTableId,
                 string.concat("id=", Strings.toString(challengeCheckpointId))
             )
         );
