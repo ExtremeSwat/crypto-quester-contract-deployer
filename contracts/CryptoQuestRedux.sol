@@ -116,7 +116,7 @@ contract CryptoQuestRedux is Ownable, CryptoQuestHelpers {
             msg.sender,
             imagePreviewURL
         );
-
+        
         challengeOwners[msg.sender][challengeCurrentId] = true;
         challengeCurrentId++;
         return challengeCurrentId;
@@ -149,7 +149,6 @@ contract CryptoQuestRedux is Ownable, CryptoQuestHelpers {
     ) external payable isChallengeOwned(challengeId) returns (uint256) {
         Challenge storage challenge = challenges[challengeId];
         checkChallengeEditability(challenge);
-        checkChallengeIsOwnedBySender(challenge);
 
         require(order > 0, "Ordering starts from 1 !");
 
@@ -169,7 +168,7 @@ contract CryptoQuestRedux is Ownable, CryptoQuestHelpers {
         }
 
         challenge.challengeCheckpoints.push(
-            ChallengeCheckpoint(challengeCheckpointId, order, true, 0, false)
+            ChallengeCheckpoint(challengeCheckpointId, order, true, 0)
         );
         challenge.lastCheckpointId = challengeCheckpointId;
         challenge.lastOrder = order;
@@ -202,26 +201,20 @@ contract CryptoQuestRedux is Ownable, CryptoQuestHelpers {
     ) external payable isChallengeOwned(challengeId) returns (uint256) {
         Challenge storage challenge = challenges[challengeId];
         checkChallengeEditability(challenge);
-        checkChallengeIsOwnedBySender(challenge);
 
-        require(challenge.challengeCheckpoints.length > 0, "no challenge checkpoints attached !");
+        require(challenge.challengeCheckpoints.length > 0);
+
         ChallengeCheckpoint memory challengeCheckpoint;
         for (uint i = 0; i < challenge.challengeCheckpoints.length; i++) {
-            challengeCheckpoint = challenge.challengeCheckpoints[i];
-
-            if (challengeCheckpoint.checkpointId == checkpointId) {
-                if (challengeCheckpoint.exists) {
-                    cryptoQuestInterface.removeCheckpointTrigger(
-                        challengeCheckpoint.checkpointTriggerId
-                    );
-                }
-
+            if (challenge.challengeCheckpoints[i].checkpointId == checkpointId) {
+                challengeCheckpoint = challenge.challengeCheckpoints[i];
                 break;
             }
         }
 
         require(challengeCheckpoint.exists, "Challenge checkpoint does not exist !");
-
+        require(challengeCheckpoint.checkpointTriggerId == 0, "Already has an attached trigger");
+        
         // sql insert of trigger
         cryptoQuestInterface.createCheckpointTrigger(
             checkpointTriggerId,
@@ -248,28 +241,29 @@ contract CryptoQuestRedux is Ownable, CryptoQuestHelpers {
     {
         Challenge storage challenge = challenges[challengeId];
         checkChallengeEditability(challenge);
-        checkChallengeIsOwnedBySender(challenge);
 
         uint256 foundIndex;
-        bool found;
         for (uint i = 0; i < challenge.challengeCheckpoints.length; i++) {
             if (
                 challenge.challengeCheckpoints[i].checkpointId == checkpointId
             ) {
                 foundIndex = i;
-                found = true;
                 break;
             }
         }
 
-        require(found, "checkpoint not found");
+        require(foundIndex > 0);
+        if(challenge.challengeCheckpoints[foundIndex].checkpointTriggerId > 0) {
+            cryptoQuestInterface.removeCheckpointTrigger(
+                challenge.challengeCheckpoints[foundIndex].checkpointTriggerId
+            );
+        }
+
         challenge.challengeCheckpoints[foundIndex] = challenge
             .challengeCheckpoints[challenge.challengeCheckpoints.length - 1];
         challenge.challengeCheckpoints.pop();
-        if (foundIndex > 0) {
-            challenge.lastCheckpointId -= 1;
-        }
 
+        challenge.lastCheckpointId -= 1;
         cryptoQuestInterface.removeCheckpoint(checkpointId);
     }
 

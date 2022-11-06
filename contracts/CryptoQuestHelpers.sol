@@ -24,7 +24,6 @@ contract CryptoQuestHelpers {
         bool exists;
 
         uint256 checkpointTriggerId;
-        bool checkpointTriggerExists;
     }
 
     struct Challenge {
@@ -55,10 +54,6 @@ contract CryptoQuestHelpers {
 
     Challenge[] public challenges;
 
-    function checkChallengeIsOwnedBySender(Challenge memory challenge) internal view {
-        if (challenge.ownerAddress != msg.sender) revert Unauthorized();
-    }
-
     modifier isParticipatingInChallenge(uint256 challengeId) {
         if (!challengeParticipants[challengeId][msg.sender])
             revert Unauthorized();
@@ -67,9 +62,7 @@ contract CryptoQuestHelpers {
     }
 
     modifier isChallengeOwned(uint256 challengeId) {
-        if (!challengeOwners[msg.sender][challengeId]) {
-            revert Unauthorized();
-        }
+        require(challengeOwners[msg.sender][challengeId]);
 
         _;
     }
