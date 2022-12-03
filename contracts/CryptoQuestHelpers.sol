@@ -36,12 +36,13 @@ contract CryptoQuestHelpers {
         uint256 lastOrder;
         uint256 lastCheckpointId;
         address winnerAddress;
-
-        mapping(uint256 => ChallengeCheckpoint) challengeCheckpoints;
     }
     
-
      // challengeOwners
+    mapping(uint256 => Challenge) challenges;
+    mapping(uint256 => ChallengeCheckpoint[]) challengeCheckpoints;
+    //Challenge[] public challenges;
+
     mapping(address => mapping(uint256 => bool)) challengeOwners;
     mapping(uint256 => uint256) challengeNumberOfCheckpoints;
 
@@ -56,8 +57,6 @@ contract CryptoQuestHelpers {
 
     // users
     mapping(address => bool) users;
-
-    Challenge[] public challenges;
 
     modifier isParticipatingInChallenge(uint256 challengeId) {
         if (!challengeParticipants[challengeId][msg.sender])
